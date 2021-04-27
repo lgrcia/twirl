@@ -1,4 +1,4 @@
-from .utils import match
+from .utils import match, plot
 import numpy as np
 from astropy.wcs.utils import fit_wcs_from_points
 from astropy.coordinates import SkyCoord
@@ -28,18 +28,15 @@ def gaia_radec(coord, shape, pixel, n=2000):
     return radec_gaia[:, idxs].T
 
 
-def match_wcs(xy, radec, return_aligned=False):
+def match_wcs(xy, radec, tolerance=3, show=False, n=20):
     """
     from list of pixel coords and radec coords performs the full wcs fit
     """
-    matches, aligned = match(xy, radec, tolerance=20, return_aligned=True)
-    radec = SkyCoord(*radec[matches[:, 0]].T, unit="deg")
-    wcs = fit_wcs_from_points(xy[matches[:, 1]].T, radec)
+    _xy, _radec = match(xy, radec, tolerance=tolerance, return_index=False, show=show, n=n)
+    _radec = SkyCoord(*_radec.T, unit=(u.deg, u.deg))
+    wcs = fit_wcs_from_points(_xy.astype(int).T, _radec)
 
-    if return_aligned:
-        return wcs, aligned
-    else:
-        return wcs
+    return wcs
 
 
 def find_peaks(data, threshold=2):

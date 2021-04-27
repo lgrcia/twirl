@@ -93,6 +93,12 @@ def good_quad(a, b, c, d):
     in_circle = np.linalg.norm(center - np.vstack([a, b, c, d]), axis=1) <= r
     return np.all(in_circle)
 
+
+def clean(xy, tolerance=20):
+
+    distances_to_others = np.array([np.linalg.norm(p-xy, axis=1) for p in xy])
+    return xy[np.argwhere(np.sum(distances_to_others < tolerance, axis=0) == 1).flatten()]
+
 # AFFINE TRANSFORM
 # ----------------
 
@@ -115,14 +121,14 @@ def find_transform(origin, ref, return_function=False):
 # -------
 
 
-def plot(*args, color="k", offset=5, label=None, **kwargs):
+def plot(*args, color="k", offset=5, label=None, alpha=1, **kwargs):
     """
     Conveniant plot of poitn sources
     """
     for i, a in enumerate(args):
-        plt.plot(*a, "o", fillstyle="none", c=color, label=label if i==0 else None)
+        plt.plot(*a, "o", fillstyle="none", c=color, label=label if i==0 else None, alpha=alpha)
     for i, (name, a) in enumerate(kwargs.items()):
-        plt.plot(*a, "o", fillstyle="none", c=color, label=label if i==0 else None)
+        plt.plot(*a, "o", fillstyle="none", c=color, label=label if i==0 else None, alpha=alpha)
         plt.text(a[0], a[1] + offset, name, ha='center', color=color)
     plt.gca().set_aspect("equal")
     if label is not None:
@@ -170,17 +176,19 @@ def closests(s1, s2, tolerance=2):
     return c
 
 
-def match(s1, s2, tolerance=10, return_aligned=False):
+def match(s1, s2, tolerance=10, return_index=False, return_transform=False, n=15, show=False):
     """
     return matched indexes bewteen two set of points
     """
-    quads_idxs = list(combinations(np.arange(s1.shape[0]), 4))
+
+    _s1 = clean(s1)
+    _s2 = s2
     
     # For conveniance we fix array to same sizes
-    if len(s1) >= len(s2):
-        s1 = s1[0:len(s2)]
-    else:
-        s2 = s2[0:len(s1)]
+    s1 = _s1.copy()[0:n]
+    s2 = _s2.copy()[0:n]
+
+    quads_idxs = list(combinations(np.arange(s1.shape[0]), 4))
 
     # building quad hash codes
     # TODO: optimize reorganize and good quad to vector
@@ -215,18 +223,28 @@ def match(s1, s2, tolerance=10, return_aligned=False):
     i = np.argmax(closeness); m = indices[i]
     S2 = stars2[i]; S1 = stars1[m]
     f = find_transform(S2, S1, return_function=True)
-    new_s2 = f(s2)
+
+    if return_transform:
+        return f
+
+    new_s2 = f(_s2)
 
     # Finding points matching tolerance
     matches = []
 
-    for i, s in enumerate(s1):
+    for i, s in enumerate(_s1):
         distances = np.linalg.norm(s - new_s2, axis=1)
         closest = np.argmin(distances)
         if distances[closest] < tolerance:
             matches.append([i, closest])
-    
-    if return_aligned:
-        return np.array(matches), new_s2
+
+    matches = np.array(matches)
+
+    if show:
+        plot(*_s1[matches[:, 0]])
+        plot(*new_s2[matches[:, 1]], color="C3")
+
+    if return_index:
+        return matches
     else:
-        return np.array(matches)
+        return _s1[matches[:, 0]], _s2[matches[:, 1]]
