@@ -1,3 +1,5 @@
+> in dev, not functional
+
 # twirl
 
 twirl is a python-only astrometric plate solving package. It is suited for cases where the RA-DEC coordinate of the image center is known and a WCS needs to be computed easily.

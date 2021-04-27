@@ -103,20 +103,26 @@ def clean(xy, tolerance=20):
 # ----------------
 
 
-def find_transform(origin, ref, return_function=False):
+pad = lambda x: np.hstack([x, np.ones((x.shape[0], 1))])
+unpad = lambda x: x[:,:-1]
+
+
+def _find_transform(s1, s2):
     """
+    Strict finding matrix transform between registered points
     least square to find the affine transform matrix between 2 set of points
     """
-    pad = lambda x: np.hstack([x, np.ones((x.shape[0], 1))])
-    unpad = lambda x: x[:,:-1]
-    X = pad(origin); Y = pad(ref)
-    A, res, rank, s = np.linalg.lstsq(X, Y, rcond=None)
+    S1 = pad(s1)
+    S2 = pad(s2)
+    A, res, rank, s = np.linalg.lstsq(S1, S2, rcond=None)
     
-    if not return_function:
-        return A
-    else:
-        return lambda x: unpad(np.dot(pad(x), A))
-    
+    return A.T
+
+
+def affine_transform(M):
+    return lambda x: unpad(np.dot(pad(x), M.T))
+
+
 # PLOTTING
 # -------
 
@@ -163,7 +169,7 @@ def plot_quad(a, b, c, d):
 # Full match
 # ----------
 
-def closests(s1, s2, tolerance=2):
+def count_cross_match(s1, s2, tolerance=2):
     """
     count pair of points whose distance is less than tolerance
     """
@@ -176,38 +182,85 @@ def closests(s1, s2, tolerance=2):
     return c
 
 
-def match(s1, s2, tolerance=10, return_index=False, return_transform=False, n=15, show=False):
+def quads_stars(xy, n=15, ):
+    """
+    return matched indexes bewteen two set of points
+    """
+    xy = xy.copy()
+    xy = xy[0:n]
+
+    quads_idxs = list(combinations(np.arange(xy.shape[0]), 4))
+
+    quads = []
+    stars = []
+
+    for qi in quads_idxs:
+        _quad = reorganize(*xy[qi, :])
+        if good_quad(*_quad):
+            quads.append(quad_hash(*_quad))
+            stars.append(_quad)
+
+    return np.array(quads), np.array(stars)
+
+
+def cross_match(s1, s2, tolerance=10, return_ixds=False):
+    matches = []
+
+    for i, s in enumerate(s1):
+        distances = np.linalg.norm(s - s2, axis=1)
+        closest = np.argmin(distances)
+        if distances[closest] < tolerance:
+            matches.append([i, closest])
+
+    matches = np.array(matches)
+
+    if return_ixds:
+        return matches
+    else:
+        if len(matches) > 0:
+            return s1[matches[:, 0]], s2[matches[:, 1]]
+        else:
+            return np.array([]), np.array([])
+
+
+def find_transform(s1, s2, tolerance=10, n=15, show=False):
+    quads1, stars1 = quads_stars(s1, n=n)
+    quads2, stars2 = quads_stars(s2, n=n)
+
+    # KDTree
+    kdt = KDTree(quads1)
+    dist, indices = kdt.query(quads2)
+
+    # We pick the two asterisms leading to the highest stars matching
+    closeness = []
+    for i, m in enumerate(indices):
+        M = _find_transform(stars1[m], stars2[i])
+        new_s1 = affine_transform(M)(s1)
+        closeness.append(count_cross_match(s2, new_s1, tolerance=tolerance))
+
+    i = np.argmax(closeness)
+    m = indices[i]
+    S1 = stars1[m]
+    S2 = stars2[i]
+    M = _find_transform(S1, S2)
+    new_s1 = affine_transform(M)(s1)
+
+    rs1, rs2 = cross_match(new_s1, s2, tolerance=tolerance)
+
+    if show:
+        plot(*rs1)
+        plot(*rs2, color="C3")
+
+    return _find_transform(rs1, rs2)
+
+
+def match(s1, s2, tolerance=10, return_index=False, return_transform=False, n=15, show=False, return_matrix=False):
     """
     return matched indexes bewteen two set of points
     """
 
-    _s1 = clean(s1)
-    _s2 = s2
-    
-    # For conveniance we fix array to same sizes
-    s1 = _s1.copy()[0:n]
-    s2 = _s2.copy()[0:n]
-
-    quads_idxs = list(combinations(np.arange(s1.shape[0]), 4))
-
-    # building quad hash codes
-    # TODO: optimize reorganize and good quad to vector
-    quads1 = []; stars1 = []
-    quads2 = []; stars2 = []
-
-    for qi in quads_idxs:
-        _quad = reorganize(*s1[qi, :])
-        if good_quad(*_quad):
-            quads1.append(quad_hash(*_quad))
-            stars1.append(_quad)
-
-        _quad = reorganize(*s2[qi, :])
-        if good_quad(*_quad):
-            quads2.append(quad_hash(*_quad))
-            stars2.append(_quad)
-
-    quads1 = np.array(quads1); stars1 = np.array(stars1)
-    quads2 = np.array(quads2); stars2 = np.array(stars2)
+    quads1, stars1 = quads_stars(s1, n=n)
+    quads2, stars2 = quads_stars(s2, n=n)
 
     # KDTree
     kdt = KDTree(quads1)
@@ -220,9 +273,7 @@ def match(s1, s2, tolerance=10, return_index=False, return_transform=False, n=15
         new_s2 = f(s2)
         closeness.append(closests(s1, new_s2, tolerance=tolerance))
 
-    i = np.argmax(closeness); m = indices[i]
-    S2 = stars2[i]; S1 = stars1[m]
-    f = find_transform(S2, S1, return_function=True)
+
 
     if return_transform:
         return f
