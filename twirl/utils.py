@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from itertools import combinations
+from itertools import combinations, product
 from scipy.spatial import KDTree
 
 # GEOMETRY
@@ -16,14 +16,18 @@ def reorganize(a, b, c, d, return_idxs=False):
     """
     order coordinates from closest to first one
     """
-    A = a
-    distances_from_A = np.linalg.norm(np.vstack([b, c, d]) - a, axis=1)
-    idxs = np.argsort(1/distances_from_A)
+    x = np.vstack([a, b, c, d])
+    distances = np.linalg.norm(x[:, :, None] - x.T[None, :, :], axis=1)
+    i = np.min(np.unravel_index(np.argmax(distances), distances.shape))
+    A = x[i]
+    x = np.delete(x, i, axis=0)
+    distances_from_A = np.linalg.norm(x - A, axis=1)
+    idxs = np.argsort(1 / distances_from_A)
     
     if return_idxs:
         return [0, *idxs]
     else:
-        return [A, *np.array([b, c, d])[idxs]]
+        return [A, *x[idxs]]
     
     
 def rotate_point(point, angle, pivot, norm=False):
@@ -90,7 +94,7 @@ def good_quad(a, b, c, d):
     r = np.linalg.norm(b-a)/2
     center = a + (b-a)/2
     # check distance from center
-    in_circle = np.linalg.norm(center - np.vstack([a, b, c, d]), axis=1) <= r
+    in_circle = np.linalg.norm(center - np.vstack([a, b, c, d]), axis=1) <= r*1.01
     return np.all(in_circle)
 
 
@@ -182,7 +186,7 @@ def count_cross_match(s1, s2, tolerance=2):
     return c
 
 
-def quads_stars(xy, n=15, ):
+def quads_stars(xy, n=15):
     """
     return matched indexes bewteen two set of points
     """
@@ -199,6 +203,9 @@ def quads_stars(xy, n=15, ):
         if good_quad(*_quad):
             quads.append(quad_hash(*_quad))
             stars.append(_quad)
+
+    if len(quads) == 0:
+        print(len(quads))
 
     return np.array(quads), np.array(stars)
 
@@ -245,57 +252,75 @@ def find_transform(s1, s2, tolerance=10, n=15, show=False):
     M = _find_transform(S1, S2)
     new_s1 = affine_transform(M)(s1)
 
-    rs1, rs2 = cross_match(new_s1, s2, tolerance=tolerance)
-
     if show:
+        rs1, rs2 = cross_match(new_s1, s2, tolerance=tolerance)
         plot(*rs1)
         plot(*rs2, color="C3")
 
-    return _find_transform(rs1, rs2)
+    i, j = cross_match(new_s1, s2, tolerance=tolerance, return_ixds=True).T
+
+    return _find_transform(s1[i], s2[j])
 
 
-def match(s1, s2, tolerance=10, return_index=False, return_transform=False, n=15, show=False, return_matrix=False):
+# Some optimized methods
+
+def _reorganize(Q):
+    distances = np.linalg.norm((Q[:, :, :, None] - np.swapaxes(Q, 1, 2)[:, None, :, :]), axis=2)
+    return np.array(
+        [Q[i][np.argsort(distances[i, m])[[0, 3, 2, 1]]] for i, m in enumerate(np.argmax(distances, 1)[:, 0])])
+
+
+def _count_cross_match(s1, s2, tolerance=2):
+    """
+    count pair of points whose distance is less than tolerance
+    """
+    return np.count_nonzero(np.linalg.norm(s1[None, :] - s2[:, None], axis=2) < tolerance)
+
+
+def _good_quad(a, b, c, d, max_distance=1000):
+    """
+    whether all points are contained in a circle (see Lang2009)
+    """
+    x = np.vstack([a, b, c, d])
+    r = np.linalg.norm(b - a) / 2
+    center = a + (b - a) / 2
+    # check distance from center
+    in_circle = np.linalg.norm(center - x, axis=1) <= r * 1.01
+    max_distance = np.max(np.linalg.norm(x[:, :, None] - x.T[None, :, :], axis=1)) < max_distance
+    return np.all(in_circle) and max_distance
+
+
+def _quad_hash(a, b, c, d):
+    """
+    from 4 coordinates froduce the quad hash code
+    """
+    x, y = XY(a, b)
+    h = np.linalg.norm(b - a)
+    n = [x, y] - a
+    n = (n / np.linalg.norm(n, 2)).T
+    xd, yd = np.dot(d - a, n) / h
+    xc, yc = np.dot(c - a, n) / h
+    return xc, xd, yc, yd
+
+
+def _quads_stars(xy, n=15):
     """
     return matched indexes bewteen two set of points
     """
+    xy = xy.copy()
+    xy = xy[0:n]
 
-    quads1, stars1 = quads_stars(s1, n=n)
-    quads2, stars2 = quads_stars(s2, n=n)
+    quads_idxs = np.array(list(combinations(np.arange(xy.shape[0]), 4)))
 
-    # KDTree
-    kdt = KDTree(quads1)
-    dist, indices = kdt.query(quads2)
-    
-    # We pick the two asterisms leading to the highest stars matching
-    closeness = []
-    for i, m in enumerate(indices):
-        f = find_transform(stars2[i], stars1[m], return_function=True)
-        new_s2 = f(s2)
-        closeness.append(closests(s1, new_s2, tolerance=tolerance))
+    Q = xy[quads_idxs]
+    Q = _reorganize(Q)
 
+    quads = []
+    stars = []
 
+    for q in Q:
+        if _good_quad(*q):
+            quads.append(_quad_hash(*q))
+            stars.append(q)
 
-    if return_transform:
-        return f
-
-    new_s2 = f(_s2)
-
-    # Finding points matching tolerance
-    matches = []
-
-    for i, s in enumerate(_s1):
-        distances = np.linalg.norm(s - new_s2, axis=1)
-        closest = np.argmin(distances)
-        if distances[closest] < tolerance:
-            matches.append([i, closest])
-
-    matches = np.array(matches)
-
-    if show:
-        plot(*_s1[matches[:, 0]])
-        plot(*new_s2[matches[:, 1]], color="C3")
-
-    if return_index:
-        return matches
-    else:
-        return _s1[matches[:, 0]], _s2[matches[:, 1]]
+    return quads, stars

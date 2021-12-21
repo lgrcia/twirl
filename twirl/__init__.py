@@ -1,43 +1,44 @@
-from .utils import match, plot
+from . import utils
 import numpy as np
 from astropy.wcs.utils import fit_wcs_from_points
 from astropy.coordinates import SkyCoord
 import astropy.units as u
+from .config import ConfigManager
 
+CONFIG = ConfigManager()
 
-def gaia_radec(coord, shape, pixel, n=2000):
-    """
-    given the SkyCoord of target (astropy), the shape of image and the pixel size, return n gaia radec orderded by mag
-    """
-    radius = np.sqrt(2) * np.max(shape) * pixel / 120
-
-    # querying gaia aroud target
+def gaia_radecs(center, fov, limit=3000):
     from astroquery.gaia import Gaia
-    Gaia.ROW_LIMIT = n
-    radius = u.Quantity(radius, u.arcminute)
-    gaia_query = Gaia.cone_search_async(coord, radius, verbose=False)
-    gaia_query_result = gaia_query.get_results()
 
-    # ra dec result
-    radec_gaia = np.array([
-        gaia_query_result["ra"].data.data,
-        gaia_query_result["dec"].data.data])
+    job = Gaia.launch_job(f"select top {limit} ra, dec from gaiadr2.gaia_source where "
+                          "1=CONTAINS("
+                          f"POINT('ICRS', {center[0]}, {center[1]}), "
+                          f"CIRCLE('ICRS',ra, dec, {fov/2}))"
+                          #f"ra between {center[0]-fov/2} and {center[0]+fov/2} and "
+                          #f"dec between {center[1]-fov/2} and {center[1]+fov/2}"
+                          "order by phot_g_mean_mag")
 
-    # sorting in magnitudes
-    idxs = np.argsort(gaia_query_result["phot_g_mean_flux"].data.data)[::-1]
-    return radec_gaia[:, idxs].T
+    table = job.get_results()
+    return np.array([table["ra"].data.data, table["dec"].data.data]).T
 
+def compute_wcs(stars, center, fov, offline=False, n=15):
+    if offline:
+        CONFIG.load_catalog()
+        gaias = CONFIG.current_catalog
+        isin = np.all(np.abs(gaias - center) < fov, 1)
+        gaias = gaias[isin]
+    else:
+        gaias = gaia_radecs(center, fov)
+    
+    return _compute_wcs(stars, gaias, n=n)
 
-def match_wcs(xy, radec, tolerance=3, show=False, n=20):
-    """
-    from list of pixel coords and radec coords performs the full wcs fit
-    """
-    _xy, _radec = match(xy, radec, tolerance=tolerance, return_index=False, show=show, n=n)
-    _radec = SkyCoord(*_radec.T, unit=(u.deg, u.deg))
-    wcs = fit_wcs_from_points(_xy.astype(int).T, _radec)
-
-    return wcs
-
+def _compute_wcs(stars, gaias, n=15):
+    X = utils.find_transform(gaias[0:n], stars, n=n)
+    gaia_pixels = utils.affine_transform(X)(gaias)
+    s1, s2 = utils.cross_match(gaia_pixels, stars, return_ixds=True, tolerance=15).T
+    ras, decs = gaias[s1].T
+    gaia_coords = SkyCoord(ra=ras*u.deg, dec=decs*u.deg)
+    return fit_wcs_from_points(stars[s2].T, gaia_coords)
 
 def find_peaks(data, threshold=2):
     from skimage.measure import label, regionprops
