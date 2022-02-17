@@ -32,8 +32,8 @@ def compute_wcs(stars, center, fov, offline=False, n=15):
     
     return _compute_wcs(stars, gaias, n=n)
 
-def _compute_wcs(stars, gaias, n=15):
-    X = utils.find_transform(gaias[0:n], stars, n=n)
+def _compute_wcs(stars, gaias, n=15, tolerance=10):
+    X = utils.find_transform(gaias[0:n], stars, n=n, tolerance=tolerance)
     gaia_pixels = utils.affine_transform(X)(gaias)
     s1, s2 = utils.cross_match(gaia_pixels, stars, return_ixds=True, tolerance=15).T
     ras, decs = gaias[s1].T
