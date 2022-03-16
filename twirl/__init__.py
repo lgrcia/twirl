@@ -48,3 +48,7 @@ def find_peaks(data, threshold=2):
     fluxes = np.array([np.sum(region.intensity_image) for region in regions])
 
     return coordinates[np.argsort(fluxes)[::-1]]
+
+
+from pkg_resources import get_distribution
+__version__ = get_distribution('twirl').version
