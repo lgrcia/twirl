@@ -9,7 +9,7 @@ README = (HERE / "README.md").read_text()
 
 setup(
     name="twirl",
-    version="0.1.2",
+    version="0.1.3",
     author="Lionel J. Garcia",
     description="python-only astrometric plate solving",
     long_description=README,
