@@ -4,3 +4,6 @@
 *-checkpoint.ipynb
 dist
 build
+
+.venv
+.env
