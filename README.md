@@ -17,13 +17,60 @@ An offline version is under development (current version relies on a Gaia catalo
 pip install twirl
 ```
 
-## Example
+## Example Usage
+
+twirl is designed to be complementary to the astropy package. It is used to compute a WCS from a set of stars detected in an image. 
+
+As a prerequisite, star detetction and plate solving is suited for when the image center and field of view are known. 
+
+In this case, the image center and field of view can be provided as a SkyCoord object and a Quantity object respectively.
+
+Use any specified header that has been stored on the FITS primary HDU to obtain the center equatorial coordinate and field of view, for this example we will assum "RA" and "DEC" are the keywords for the center equatorial coordinate.
+
+### Setup
+
+```python
+import numpy as np
+
+from astropy.io import fits
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+
+# Open some FITS image: 
+hdul = fits.open("...")
+
+# ra, dec in degrees
+ra, dec = header["RA"], header["DEC"]
+
+# Provide the center as a SkyCoord object:
+center = SkyCoord(ra, dec, unit=["deg", "deg"])
+
+center = [center.ra.value, center.dec.value]
+
+# Utilise the image shape and pixel size in arcseconds " to obtain the field of view in degrees:
+shape = data.shape
+
+# Pixel size in arcseconds:
+pixel = 0.66 * u.arcsec
+
+# Field of view in degrees:
+fov = np.max(shape)*pixel.to(u.deg).value
+```
+
+From here, we can pass the data, the center equatorial coordinate and the field-of-view to twirl to compute the World Coordinate System (WCS):
+
+### Twirl Usage
+
 ```python
 import twirl
 
+# Find some starts in the image:
 stars = twirl.find_peaks(data)[0:15]
+
+# Compute the World Coordinate System:
 wcs = twirl.compute_wcs(stars, center, fov)
 ```
+
 A more complete example is provided in [docs/notebooks](https://github.com/lgrcia/twirl/tree/master/docs/notebooks)
 
 ## Development
