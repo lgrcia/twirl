@@ -9,7 +9,7 @@ README = (HERE / "README.md").read_text()
 
 setup(
     name="twirl",
-    version="0.1.3",
+    version="0.2.0",
     author="Lionel J. Garcia",
     description="python-only astrometric plate solving",
     long_description=README,
@@ -17,18 +17,24 @@ setup(
     packages=["twirl"],
     license="MIT",
     url="https://github.com/lgrcia/twirl",
-    # entry_points="""
-    #     [console_scripts]
-    #     prose=main:cli
-    # """,
-    
     install_requires=[
         "numpy",
-        "scipy",
         "astropy>=4.3",
-        "matplotlib",
-        "scikit-image",
+        "astroquery"
     ],
+    extras_require={
+        "docs": [
+            "sphinx",
+            "docutils",
+            "jupyterlab",
+            "myst-parser",
+            "twine",
+            "sphinx-book-theme",
+            "black",
+            "myst_nb",
+            "sphinx-copybutton",
+        ]
+    },
     zip_safe=True,
     classifiers=[
         "Programming Language :: Python :: 3",

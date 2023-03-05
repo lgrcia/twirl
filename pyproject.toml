@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "twirl"
-version = "0.1.3"
+version = "0.2.0"
 description = "Astrometric plate solving in Python"
 authors = ["Lionel J. Garcia <lionel_garcia@live.fr r>"]
 license = "MIT"
@@ -14,9 +14,20 @@ numpy = "^1.23.5"
 astropy = "^5.1.1"
 astroquery = "^0.4.6"
 requests = "^2.28.1"
-scipy = "^1.9.3"
-matplotlib = "^3.6.2"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.extras]
+docs = [
+    "sphinx",
+    "docutils",
+    "jupyterlab",
+    "myst-parser",
+    "twine",
+    "sphinx-book-theme",
+    "black",
+    "myst_nb",
+    "sphinx-copybutton",
+]
