@@ -15,7 +15,7 @@ def compute_wcs(xy: np.ndarray, radecs: np.ndarray, tolerance: int=5):
     radecs : np.ndarray
         RA-DEC coordinates (in deg)
     tolerance : int, optional
-        minimum distance between points to be cross-matched, by default 5
+        minimum distance (in units of xy) between points to be cross-matched, by default 5
 
     Returns
     -------
@@ -37,6 +37,7 @@ def gaia_radecs(center, fov, limit=10000, circular=True):
     
     query from https://gea.esac.esa.int/archive/documentation/GEDR3/Gaia_archive/chap_datamodel/sec_dm_main_tables/ssec_dm_gaia_source.html
 
+    TODO: adapt to non-square images
 
     Parameters
     ----------
