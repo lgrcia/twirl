@@ -1,7 +1,7 @@
 # twirl
 
 <p align="center">
-    <img src=" _static/twirl.png" height="270">
+    <img src=" docs/_static/twirl.png" height="270">
 </p>
 
 twirl is a astrometric plate solving package for Python. It is suited for cases where the Right Ascension and Declination (RA, dec) coordinates of the image center and the field of view is known, computing a World Coordinate System (WCS) based on GAIA reference stars.
