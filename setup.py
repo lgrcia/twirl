@@ -17,11 +17,7 @@ setup(
     packages=["twirl"],
     license="MIT",
     url="https://github.com/lgrcia/twirl",
-    install_requires=[
-        "numpy",
-        "astropy>=4.3",
-        "astroquery"
-    ],
+    install_requires=["numpy", "astropy>=4.3", "astroquery"],
     extras_require={
         "docs": [
             "sphinx",
@@ -31,7 +27,7 @@ setup(
             "twine",
             "sphinx-book-theme",
             "black",
-            "myst_nb",
+            "myst-nb",
             "sphinx-copybutton",
         ]
     },
