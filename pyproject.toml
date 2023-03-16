@@ -28,6 +28,7 @@ sphinx-book-theme = "^1.0.0"
 myst-nb = "*"
 sphinx-copybutton = "*"
 photutils = "*"
+scipy = "*"
 matplotlib = "*"
 
 [build-system]
