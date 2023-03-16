@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  An astrometric plate solving Python package
+  Python package for astrometric plate solving
   <br>
   <p align="center">
     <a href="https://github.com/lgrcia/twirl">
