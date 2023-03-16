@@ -31,6 +31,7 @@ photutils = "^1.6.0"
 scipy = "*"
 matplotlib = "*"
 scikit-image = "^0.20.0"
+pandas = "^1.5.3"
 
 [build-system]
 requires = ["poetry-core"]
