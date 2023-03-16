@@ -6,17 +6,17 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'twirl'
-copyright = '2023, Lionel Garcia'
-author = 'Lionel Garcia'
+project = "twirl"
+copyright = "2023, Lionel Garcia"
+author = "Lionel Garcia"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = []
 
-templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+templates_path = ["_templates"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -26,16 +26,16 @@ extensions = [
     "sphinx_copybutton",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
-     "sphinx.ext.autosummary"
+    "sphinx.ext.autosummary",
 ]
 
 html_theme = "sphinx_book_theme"
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 source_suffix = {
-    '.rst': 'restructuredtext',
-    '.ipynb': 'myst-nb',
-    '.myst': 'myst-nb',
+    ".rst": "restructuredtext",
+    ".ipynb": "myst-nb",
+    ".myst": "myst-nb",
 }
 
 root_doc = "index"
@@ -48,6 +48,6 @@ html_theme_options = {
 
 nb_render_image_options = {"align": "center"}
 
-html_css_files = ['style.css']
-autodoc_typehints = 'signature'
-autoclass_content = 'both'
+html_css_files = ["style.css"]
+autodoc_typehints = "signature"
+autoclass_content = "both"
