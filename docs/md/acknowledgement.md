@@ -1,6 +1,6 @@
 # Acknowledgement
 
-If you use this package, please cite the original paper of Lang, D., Hogg et al. (2010). Astrometry.net: Blind Astrometric Calibration of Arbitrary Astronomical Images. The Astronomical Journal, 139(5), pp.1782–1800. doi:10.1088/0004-6256/139/5/1782.
+If you use this package, please cite the original paper of Lang, D. et al. (2010). Astrometry.net: Blind Astrometric Calibration of Arbitrary Astronomical Images. The Astronomical Journal, 139(5), pp.1782–1800. doi:10.1088/0004-6256/139/5/1782.
 
 ```
 @ARTICLE{2010AJ....139.1782L,
