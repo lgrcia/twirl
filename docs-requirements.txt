@@ -5,5 +5,5 @@ myst-parser
 twine
 sphinx-book-theme
 black
-myst_nb
+myst-nb
 sphinx-copybutton
