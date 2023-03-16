@@ -17,7 +17,7 @@
     <a href="https://ui.adsabs.harvard.edu/abs/2022MNRAS.509.4817G">
       <img src="https://img.shields.io/badge/paper-gray.svg?style=flat" alt="paper"/>
     </a>
-    <a href="https://twil.readthedocs.io/en">
+    <a href="https://twirl.readthedocs.io">
       <img src="https://img.shields.io/badge/documentation-black.svg?style=flat" alt="documentation"/>
     </a>
   </p>
