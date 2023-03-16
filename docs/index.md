@@ -1,3 +1,7 @@
+```{warning}
+Documentation for the `dev` branch (to be released soon)
+```
+
 ```{image} _static/twirl.png
 :align: center
 :height: 270px
