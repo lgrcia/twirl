@@ -7,7 +7,7 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.8,<3.12"
 numpy = "^1.23.5"
 astropy = "^5.1.1"
 astroquery = "^0.4.6"
@@ -27,9 +27,10 @@ twine = "*"
 sphinx-book-theme = "^1.0.0"
 myst-nb = "*"
 sphinx-copybutton = "*"
-photutils = "*"
+photutils = "^1.6.0"
 scipy = "*"
 matplotlib = "*"
+scikit-image = "^0.20.0"
 
 [build-system]
 requires = ["poetry-core"]
