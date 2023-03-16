@@ -4,6 +4,25 @@
     <img src=" docs/_static/twirl.png" height="270">
 </p>
 
+<p align="center">
+  An astrometric plate solving Python package
+  <br>
+  <p align="center">
+    <a href="https://github.com/lgrcia/twirl">
+      <img src="https://img.shields.io/badge/github-lgrcia/twirl-blue.svg?style=flat" alt="github"/>
+    </a>
+    <a href="">
+      <img src="https://img.shields.io/badge/license-MIT-lightgray.svg?style=flat" alt="license"/>
+    </a>
+    <a href="https://ui.adsabs.harvard.edu/abs/2022MNRAS.509.4817G">
+      <img src="https://img.shields.io/badge/paper-gray.svg?style=flat" alt="paper"/>
+    </a>
+    <a href="https://twil.readthedocs.io/en">
+      <img src="https://img.shields.io/badge/documentation-black.svg?style=flat" alt="documentation"/>
+    </a>
+  </p>
+</p>
+
 twirl is a astrometric plate solving package for Python. It is suited for cases where the Right Ascension and Declination (RA, dec) coordinates of the image center and the field of view is known, computing a World Coordinate System (WCS) based on GAIA reference stars.
 
 twirl is based on the algorithm of Lang et al. 2009 (astrometry.net) and go through these steps:
