@@ -18,6 +18,19 @@ astropy = "^5.1.1"
 astroquery = "^0.4.6"
 requests = "^2.28.1"
 
+[tool.poetry.group.docs]
+optional = True
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "*"
+docutils = "*"
+jupyterlab = "*"
+myst-parser = "*"
+twine = "*"
+sphinx-book-theme = "^1.0.0"
+myst-nb = "*"
+sphinx-copybutton = "*"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
