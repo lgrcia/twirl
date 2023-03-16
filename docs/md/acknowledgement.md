@@ -1,6 +1,6 @@
 # Acknowledgement
 
-If you use this package, please cite the original paper of Lang, D., Hogg, D.W., Mierle, K., Blanton, M. and Roweis, S. (2010). Astrometry.net: Blind Astrometric Calibration of Arbitrary Astronomical Images. The Astronomical Journal, 139(5), pp.1782–1800. doi:10.1088/0004-6256/139/5/1782.
+If you use this package, please cite the original paper of Lang, D., Hogg et al. (2010). Astrometry.net: Blind Astrometric Calibration of Arbitrary Astronomical Images. The Astronomical Journal, 139(5), pp.1782–1800. doi:10.1088/0004-6256/139/5/1782.
 
 ```
 @ARTICLE{2010AJ....139.1782L,
@@ -22,7 +22,7 @@ archivePrefix = {arXiv},
 }
 ```
 
-as well as its implementation in Garcia, L. J., (2022) prose: a Python framework for modular astronomical images processing. MNRAS, vol. 509, no. 4, pp. 4817–4828, 2022. doi:10.1093/mnras/stab3113.
+as well as its implementation in Garcia, L. J. et al. (2022). prose: a Python framework for modular astronomical images processing. MNRAS, vol. 509, no. 4, pp. 4817–4828, 2022. doi:10.1093/mnras/stab3113.
 
 ```
 @ARTICLE{2022MNRAS.509.4817G,
