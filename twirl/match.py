@@ -8,6 +8,7 @@ def count_cross_match(xy1, xy2, tol=1e-3):
         np.min(np.linalg.norm(xy1[:, None, :] - xy2[None, :, :], axis=-1), 0) < tol
     )
 
+
 def cross_match(xy1, xy2, tolerance=10):
     matches = []
 

@@ -1,6 +1,7 @@
 import numpy as np
 
-def pad(x): 
+
+def pad(x):
     return np.hstack([x, np.ones((x.shape[0], 1))])
 
 
@@ -77,20 +78,21 @@ def _get_transform_matrix(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
 
     Returns
     -------
-    np.ndarray 
+    np.ndarray
         transformation matrix of shape (3, 3)
     """
     u1 = v1[1] - v1[0]
     u2 = v2[1] - v2[0]
     n1 = np.linalg.norm(u1)
     n2 = np.linalg.norm(u2)
-    theta = np.arccos(np.clip(np.dot(u1/n1, u2/n2), -1.0, 1.0))
-    scale = n2/n1
+    theta = np.arccos(np.clip(np.dot(u1 / n1, u2 / n2), -1.0, 1.0))
+    scale = n2 / n1
     A = transform_matrix(scale=scale, rotation=theta)
     a = np.pad(v1[0], (0, 1), constant_values=1)
     b = np.pad(v2[0], (0, 1), constant_values=1)
-    t = (b - A@a)[0:2]
+    t = (b - A @ a)[0:2]
     return transform_matrix(scale=scale, rotation=theta, translation=t)
+
 
 def get_transform_matrix(xy1, xy2):
     XY1 = pad(xy1)
