@@ -17,6 +17,7 @@ scikit-image = "^0.20.0"
 scipy = "^1.9.3"
 
 [tool.poetry.group.dev.dependencies]
+flake8 = "^6.0.0"
 
 [build-system]
 requires = ["poetry-core"]

@@ -1,8 +1,11 @@
-from . import utils
 import numpy as np
+import astropy.units as u
+
+from . import utils
 from astropy.wcs.utils import fit_wcs_from_points
 from astropy.coordinates import SkyCoord
-import astropy.units as u
+from skimage.measure import label, regionprops
+
 from .config import ConfigManager
 
 CONFIG = ConfigManager()
@@ -41,12 +44,10 @@ def _compute_wcs(stars, gaias, n=15, tolerance=10):
     return fit_wcs_from_points(stars[s2].T, gaia_coords)
 
 def find_peaks(data, threshold=2):
-    from skimage.measure import label, regionprops
     threshold = threshold * np.nanstd(data.flatten()) + np.median(data.flatten())
     regions = regionprops(label(data > threshold), data)
     coordinates = np.array([region.weighted_centroid[::-1] for region in regions])
     fluxes = np.array([np.sum(region.intensity_image) for region in regions])
-
     return coordinates[np.argsort(fluxes)[::-1]]
 
 
