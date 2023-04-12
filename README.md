@@ -23,7 +23,7 @@
   </p>
 </p>
 
-twirl is a astrometric plate solving package for Python. It is suited for cases where the Right Ascension and Declination (RA, dec) coordinates of the image center and the field of view is known, computing a World Coordinate System (WCS) based on GAIA reference stars.
+twirl is an astrometric plate solving package for Python. It is suited for cases where the Right Ascension and Declination (RA, dec) coordinates of the image center and the field of view is known, computing a World Coordinate System (WCS) based on GAIA reference stars.
 
 twirl is based on the algorithm of Lang et al. 2009 (astrometry.net) and implemented in pure python. An offline version is under development (current version relies on a Gaia catalog query)
 

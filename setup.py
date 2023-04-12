@@ -11,7 +11,7 @@ setup(
     name="twirl",
     version="0.2.0",
     author="Lionel J. Garcia",
-    description="python-only astrometric plate solving",
+    description="twirl is an astrometric plate solving package for Python.",
     long_description=README,
     long_description_content_type="text/markdown",
     packages=["twirl"],

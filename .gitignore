@@ -12,5 +12,5 @@ build
 # local dev and docs
 **__pycache__
 docs/_build
-settings.json
 .DS_Store
+.ruff*
