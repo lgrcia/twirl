@@ -1,7 +1,7 @@
 import numpy as np
 
-from .geometry import get_transform_matrix, pad
-from .quads import hashes
+from twirl.geometry import get_transform_matrix, pad
+from twirl.quads import hashes
 
 
 def count_cross_match(xy1, xy2, tol=1e-3):
