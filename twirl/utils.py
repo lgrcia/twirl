@@ -1,6 +1,7 @@
+from itertools import combinations
+
 import matplotlib.pyplot as plt
 import numpy as np
-from itertools import combinations, product
 from scipy.spatial import KDTree
 
 # GEOMETRY
@@ -9,7 +10,7 @@ from scipy.spatial import KDTree
 
 def ang(x, y):
     "angle between two point x, y with respect to x axis"
-    return np.arctan(1/np.divide(*(y-x)))
+    return np.arctan(1 / np.divide(*(y - x)))
 
 
 def reorganize(a, b, c, d, return_idxs=False):
@@ -23,29 +24,27 @@ def reorganize(a, b, c, d, return_idxs=False):
     x = np.delete(x, i, axis=0)
     distances_from_A = np.linalg.norm(x - A, axis=1)
     idxs = np.argsort(1 / distances_from_A)
-    
+
     if return_idxs:
         return [0, *idxs]
     else:
         return [A, *x[idxs]]
-    
-    
+
+
 def rotate_point(point, angle, pivot, norm=False):
     """
     rotate point around pivot of certain angle
     """
-    co = np.cos(angle); si = np.sin(angle)
-    r = np.array([
-        [co, -si],
-        [si,  co]
-    ])
+    co = np.cos(angle)
+    si = np.sin(angle)
+    r = np.array([[co, -si], [si, co]])
     x = point - pivot
-    x = r@x
+    x = r @ x
     if norm:
         x /= np.linalg.norm(x)
-        x *= np.linalg.norm(point - pivot)*co
+        x *= np.linalg.norm(point - pivot) * co
     x += pivot
-    
+
     return x
 
 
@@ -54,10 +53,10 @@ def XY(a, b, norm=False):
     coordinates of the x, y axis as defined in Lang2009
     """
     if norm:
-        norm = np.linalg.norm(b-a)
-    x = rotate_point(b, -np.pi/4, a, norm=norm)
-    y = rotate_point(b, np.pi/4, a, norm=norm)
-    
+        norm = np.linalg.norm(b - a)
+    x = rotate_point(b, -np.pi / 4, a, norm=norm)
+    y = rotate_point(b, np.pi / 4, a, norm=norm)
+
     return x, y
 
 
@@ -70,20 +69,23 @@ def proj(p, origin, axe, norm=False):
     if norm:
         return np.dot(p - origin, n)
     else:
-        return origin + n*np.dot(p - origin, n)
-    
-    
+        return origin + n * np.dot(p - origin, n)
+
+
 # QUAD
 # ----
+
 
 def quad_hash(a, b, c, d):
     """
     from 4 coordinates froduce the quad hash code
     """
-    x, y = XY(a,b)
-    h = np.linalg.norm(b-a)
-    xd = proj(d, a, x, norm=True)/h; yd = proj(d, a, y, norm=True)/h
-    xc = proj(c, a, x, norm=True)/h; yc = proj(c, a, y, norm=True)/h
+    x, y = XY(a, b)
+    h = np.linalg.norm(b - a)
+    xd = proj(d, a, x, norm=True) / h
+    yd = proj(d, a, y, norm=True) / h
+    xc = proj(c, a, x, norm=True) / h
+    yc = proj(c, a, y, norm=True) / h
     return xc, xd, yc, yd
 
 
@@ -91,24 +93,26 @@ def good_quad(a, b, c, d):
     """
     whether all points are contained in a circle (see Lang2009)
     """
-    r = np.linalg.norm(b-a)/2
-    center = a + (b-a)/2
+    r = np.linalg.norm(b - a) / 2
+    center = a + (b - a) / 2
     # check distance from center
-    in_circle = np.linalg.norm(center - np.vstack([a, b, c, d]), axis=1) <= r*1.01
+    in_circle = np.linalg.norm(center - np.vstack([a, b, c, d]), axis=1) <= r * 1.01
     return np.all(in_circle)
 
 
 def clean(xy, tolerance=20):
+    distances_to_others = np.array([np.linalg.norm(p - xy, axis=1) for p in xy])
+    return xy[
+        np.argwhere(np.sum(distances_to_others < tolerance, axis=0) == 1).flatten()
+    ]
 
-    distances_to_others = np.array([np.linalg.norm(p-xy, axis=1) for p in xy])
-    return xy[np.argwhere(np.sum(distances_to_others < tolerance, axis=0) == 1).flatten()]
 
 # AFFINE TRANSFORM
 # ----------------
 
 
 pad = lambda x: np.hstack([x, np.ones((x.shape[0], 1))])
-unpad = lambda x: x[:,:-1]
+unpad = lambda x: x[:, :-1]
 
 
 def _find_transform(s1, s2):
@@ -119,7 +123,7 @@ def _find_transform(s1, s2):
     S1 = pad(s1)
     S2 = pad(s2)
     A, res, rank, s = np.linalg.lstsq(S1, S2, rcond=None)
-    
+
     return A.T
 
 
@@ -136,23 +140,39 @@ def plot(*args, color="k", offset=5, label=None, alpha=1, **kwargs):
     Conveniant plot of poitn sources
     """
     for i, a in enumerate(args):
-        plt.plot(*a, "o", fillstyle="none", c=color, label=label if i==0 else None, alpha=alpha)
+        plt.plot(
+            *a,
+            "o",
+            fillstyle="none",
+            c=color,
+            label=label if i == 0 else None,
+            alpha=alpha,
+        )
     for i, (name, a) in enumerate(kwargs.items()):
-        plt.plot(*a, "o", fillstyle="none", c=color, label=label if i==0 else None, alpha=alpha)
-        plt.text(a[0], a[1] + offset, name, ha='center', color=color)
+        plt.plot(
+            *a,
+            "o",
+            fillstyle="none",
+            c=color,
+            label=label if i == 0 else None,
+            alpha=alpha,
+        )
+        plt.text(a[0], a[1] + offset, name, ha="center", color=color)
     plt.gca().set_aspect("equal")
     if label is not None:
         plt.legend()
-    
-    
+
+
 def plot_quad(a, b, c, d):
     """
     Plot to visualize quad when making hash code, as in Lang2009
     """
     x, y = XY(a, b, norm=True)
 
-    xd = proj(d, a, x); yd = proj(d, a, y)
-    xc = proj(c, a, x); yc = proj(c, a, y)
+    xd = proj(d, a, x)
+    yd = proj(d, a, y)
+    xc = proj(c, a, x)
+    yc = proj(c, a, y)
 
     plot(a=a, b=b, c=c, d=d)
     plot(x=x, y=y, color="C0")
@@ -166,12 +186,17 @@ def plot_quad(a, b, c, d):
     plt.plot(*np.array([a, x]).T, color="C0", alpha=0.2)
     plt.plot(*np.array([a, y]).T, color="C0", alpha=0.2)
 
-    plt.gca().add_patch((plt.Circle((b-a)/2 + a, radius=np.linalg.norm(b-a)/2, fill=False)))
-    plt.gca().add_patch((plt.Polygon(np.array([a, c, b, d]), facecolor="k", alpha=0.05)))
+    radius = np.linalg.norm(b - a) / 2
 
-    
+    plt.gca().add_patch((plt.Circle((b - a) / 2 + a, radius, fill=False)))
+    plt.gca().add_patch(
+        (plt.Polygon(np.array([a, c, b, d]), facecolor="k", alpha=0.05))
+    )
+
+
 # Full match
 # ----------
+
 
 def count_cross_match(s1, s2, tolerance=2):
     """
@@ -264,17 +289,26 @@ def find_transform(s1, s2, tolerance=10, n=15, show=False):
 
 # Some optimized methods
 
+
 def _reorganize(Q):
-    distances = np.linalg.norm((Q[:, :, :, None] - np.swapaxes(Q, 1, 2)[:, None, :, :]), axis=2)
+    distances = np.linalg.norm(
+        (Q[:, :, :, None] - np.swapaxes(Q, 1, 2)[:, None, :, :]), axis=2
+    )
     return np.array(
-        [Q[i][np.argsort(distances[i, m])[[0, 3, 2, 1]]] for i, m in enumerate(np.argmax(distances, 1)[:, 0])])
+        [
+            Q[i][np.argsort(distances[i, m])[[0, 3, 2, 1]]]
+            for i, m in enumerate(np.argmax(distances, 1)[:, 0])
+        ]
+    )
 
 
 def _count_cross_match(s1, s2, tolerance=2):
     """
     count pair of points whose distance is less than tolerance
     """
-    return np.count_nonzero(np.linalg.norm(s1[None, :] - s2[:, None], axis=2) < tolerance)
+    return np.count_nonzero(
+        np.linalg.norm(s1[None, :] - s2[:, None], axis=2) < tolerance
+    )
 
 
 def _good_quad(a, b, c, d, max_distance=1000):
@@ -286,7 +320,9 @@ def _good_quad(a, b, c, d, max_distance=1000):
     center = a + (b - a) / 2
     # check distance from center
     in_circle = np.linalg.norm(center - x, axis=1) <= r * 1.01
-    max_distance = np.max(np.linalg.norm(x[:, :, None] - x.T[None, :, :], axis=1)) < max_distance
+    max_distance = (
+        np.max(np.linalg.norm(x[:, :, None] - x.T[None, :, :], axis=1)) < max_distance
+    )
     return np.all(in_circle) and max_distance
 
 
