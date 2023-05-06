@@ -19,6 +19,7 @@ scipy = "^1.9.3"
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
 ruff = "^0.0.261"
+pytest = "^7.3.1"
 
 [build-system]
 requires = ["poetry-core"]
