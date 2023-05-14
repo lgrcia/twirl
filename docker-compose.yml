@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    command:
+      - "/usr/src/app/start.sh"
+    stdin_open: true
+    tty: true
+    container_name: twirl
+    volumes: 
+      - ./:/usr/src/app
+    env_file:
+      - .env

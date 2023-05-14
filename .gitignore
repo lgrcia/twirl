@@ -8,3 +8,5 @@ build
 .venv
 .env
 .ruff*
+
+.pytest_cache
