@@ -17,11 +17,6 @@ setup(
     packages=["twirl"],
     license="MIT",
     url="https://github.com/lgrcia/twirl",
-    # entry_points="""
-    #     [console_scripts]
-    #     prose=main:cli
-    # """,
-    
     install_requires=[
         "numpy",
         "scipy",
