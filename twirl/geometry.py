@@ -99,3 +99,26 @@ def get_transform_matrix(xy1, xy2):
     XY2 = pad(xy2)
     M, _, _, _ = np.linalg.lstsq(XY1, XY2, rcond=None)
     return M.T
+
+
+def triangle_angles(trios):
+    if trios.shape[1:] != (3, 2):
+        raise ValueError("The input array must have shape (n, 3, 2)")
+
+    # Calculate the vectors between the points
+    vec1 = trios[:, 1, :] - trios[:, 0, :]
+    vec2 = trios[:, 2, :] - trios[:, 1, :]
+    vec3 = trios[:, 0, :] - trios[:, 2, :]
+
+    # Calculate the lengths of the vectors (distances between the points)
+    a = np.linalg.norm(vec2, axis=1)
+    b = np.linalg.norm(vec3, axis=1)
+    c = np.linalg.norm(vec1, axis=1)
+
+    # Use the law of cosines to find the angles
+    angle_A = np.arccos((b**2 + c**2 - a**2) / (2 * b * c))
+    angle_B = np.arccos((c**2 + a**2 - b**2) / (2 * c * a))
+    angle_C = np.arccos((a**2 + b**2 - c**2) / (2 * a * b))
+
+    # Convert to degrees and return
+    return np.array([angle_A, angle_B, angle_C]).T

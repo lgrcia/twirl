@@ -1,7 +1,8 @@
 import numpy as np
 
 from twirl.geometry import get_transform_matrix, pad
-from twirl.quads import hashes
+from twirl.quads import hashes as hash4
+from twirl.triangles import hashes as hash3
 
 
 def count_cross_match(xy1, xy2, tol=1e-3):
@@ -23,7 +24,11 @@ def cross_match(xy1, xy2, tolerance=10):
 
 
 def find_transform(
-    xy2: np.ndarray, xy1: np.ndarray, tolerance: int = 12, min_match: int = None
+    xy2: np.ndarray,
+    xy1: np.ndarray,
+    tolerance: int = 12,
+    min_match: int = None,
+    asterism: int = 4,
 ) -> np.ndarray:
     """_summary_
 
@@ -45,14 +50,21 @@ def find_transform(
         _description_
     """
 
-    hash1, quads1 = hashes(xy1)
-    hash2, quads2 = hashes(xy2)
+    if asterism == 3:
+        asterism = hash3
+    elif asterism == 4:
+        asterism = hash4
+    else:
+        raise ValueError("available asterisms are 3 and 4")
+
+    hash1, points1 = asterism(xy1)
+    hash2, points2 = asterism(xy2)
     distances = np.linalg.norm(hash1[:, None, :] - hash2[None, :, :], axis=2)
     shortest_hash = np.argmin(distances, 1)
     ns = []
 
     for i, j in enumerate(shortest_hash):
-        M = get_transform_matrix(quads2[j], quads1[i])
+        M = get_transform_matrix(points2[j], points1[i])
         test = (M @ pad(xy2).T)[0:2].T
         n = count_cross_match(xy1, test, tolerance)
         if min_match is not None:
@@ -62,6 +74,6 @@ def find_transform(
             ns.append(n)
 
         i = np.argmax(ns)
-        M = get_transform_matrix(quads2[np.argmin(distances, 1)[i]], quads1[i])
+        M = get_transform_matrix(points2[np.argmin(distances, 1)[i]], points1[i])
 
     return M
