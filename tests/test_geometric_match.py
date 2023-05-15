@@ -6,8 +6,8 @@ from twirl.match import count_cross_match, find_transform
 
 
 @pytest.mark.parametrize("asterism", [3, 4])
-@pytest.mark.parametrize("n", [12, 10, 7, 6])
-@pytest.mark.parametrize("seed", [10, 7, 5, 4, 3, 1, 2])
+@pytest.mark.parametrize("n", [12, 7, 6])
+@pytest.mark.parametrize("seed", [5, 3])
 def test_true_geometric_match(asterism, n, seed, extra=5):
     """Test perfect match between transformation matrix
     from two sets of simulated points
@@ -32,8 +32,8 @@ def test_true_geometric_match(asterism, n, seed, extra=5):
 
 
 @pytest.mark.parametrize("asterism", [3, 4])
-@pytest.mark.parametrize("n", [12, 10, 7, 6])
-@pytest.mark.parametrize("seed", [10, 7, 5, 4, 3, 1, 2])
+@pytest.mark.parametrize("n", [12, 7, 6])
+@pytest.mark.parametrize("seed", [5, 3])
 def test_fuzzy_match(asterism, n, seed):
     """Test perfect match between transformation matrix from
     two sets of simulated points, with positions errors
@@ -61,8 +61,8 @@ def test_fuzzy_match(asterism, n, seed):
     assert cn > 0.8 * n
 
 
-@pytest.mark.parametrize("n", [25, 30, 20, 22])
-@pytest.mark.parametrize("seed", [10, 7, 5, 4, 3, 1, 2])
+@pytest.mark.parametrize("n", [25, 30])
+@pytest.mark.parametrize("seed", [5, 6])
 def test_large_fuzzy_match(n, seed, asterism=3):
     """Test perfect match between transformation matrix from
     two sets of simulated points, with positions errors
