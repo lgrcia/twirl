@@ -1,7 +1,7 @@
 # twirl
 
 <p align="center">
-    <img src=" docs/_static/twirl.png" height="270">
+    <img src="https://github.com/lgrcia/twirl/blob/main/docs/_static/twirl.png" height="270">
 </p>
 
 <p align="center">
