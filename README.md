@@ -25,14 +25,14 @@
 
 twirl is an astrometric plate solving package for Python. It is suited for cases where the Right Ascension and Declination (RA, dec) coordinates of the image center and the field of view is known, computing a World Coordinate System (WCS) based on GAIA reference stars.
 
-twirl is based on the algorithm of Lang et al. 2009 (astrometry.net), which performs the following solving steps to compute a WCS:
+twirl compute a WCS following these steps:
 
 1. detection of stars in the image if not provided
 2. catalog query using image known center
-3. 4-points asterisms building and matching following Lang et al. 2009 method
+3. asterisms building and matching
 4. image recombination and wcs fit using astropy.wcs
 
-Please note, an offline version is currently under development to dfeprecate the dependency on perform a query to the Gaia catalog over the network.
+Astersims are of 3 or 4 points. 4 points asterism are built following Lang et al. 2009 while 3 points asterims are based on a novel  algorithm (paper in preparation).
 
 ---
 
@@ -56,7 +56,7 @@ poetry add twirl
 
 twirl is designed to be complementary to the astropy package. It is used to compute a WCS from a set of stars detected in an image. 
 
-As a prerequisite, star detetction and plate solving is suited for when the image center and field of view are known. 
+As a prerequisite, star detection and plate solving is suited for when the image center and field of view are known. 
 
 In this case, the image center and field of view can be provided as a SkyCoord object and a Quantity object respectively.
 
