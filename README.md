@@ -32,7 +32,7 @@ twirl compute a WCS following these steps:
 3. asterisms building and matching
 4. image recombination and wcs fit using astropy.wcs
 
-Astersims are of 3 or 4 points. 4 points asterism are built following Lang et al. 2009 while 3 points asterims are based on a novel  algorithm (paper in preparation).
+Astersims are of 3 or 4 points. 4 points asterisms are built following Lang et al. 2009 while 3 points asterims are based on a novel  algorithm (paper in preparation).
 
 ---
 
