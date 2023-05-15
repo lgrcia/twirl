@@ -16,7 +16,7 @@ repository = "https://github.com/lgrcia/twirl"
 keywords = ["astronomy", "astrometry", "plate-solving"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.8"
 astropy = "^5.1.1"
 astroquery = "^0.4.6"
 matplotlib = "^3.6.2"
