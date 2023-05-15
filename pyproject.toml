@@ -2,9 +2,18 @@
 name = "twirl"
 version = "0.2.0"
 description = "Astrometric plate solving in Python"
-authors = ["Lionel J. Garcia <lionel_garcia@live.fr r>"]
+authors = [
+  "Lionel J. Garcia <lionel_garcia@live.fr>"
+]
+maintainers = [
+  "Lionel J. Garcia <lionel_garcia@live.fr>",
+  "Michael J. Roberts <michael@observerly.com>"
+]
 license = "MIT"
 readme = "README.md"
+homepage = "https://twirl.readthedocs.io"
+repository = "https://github.com/lgrcia/twirl"
+keywords = ["astronomy", "astrometry", "plate-solving"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -19,6 +28,7 @@ scipy = "^1.9.3"
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
 ruff = "^0.0.261"
+pytest = "^7.3.1"
 
 [tool.poetry.group.test.dependencies]
 pytest = "*"
