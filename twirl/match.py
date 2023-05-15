@@ -67,11 +67,10 @@ def find_transform(
         M = get_transform_matrix(points2[j], points1[i])
         test = (M @ pad(xy2).T)[0:2].T
         n = count_cross_match(xy1, test, tolerance)
+        ns.append(n)
         if min_match is not None:
             if n >= min_match:
                 break
-        else:
-            ns.append(n)
 
         i = np.argmax(ns)
         M = get_transform_matrix(points2[np.argmin(distances, 1)[i]], points1[i])
