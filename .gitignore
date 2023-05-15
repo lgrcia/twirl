@@ -5,8 +5,12 @@
 dist
 build
 
+# poetry
 .venv
 .env
-.ruff*
 
-.pytest_cache
+# local dev and docs
+**__pycache__
+docs/_build
+.DS_Store
+.ruff*

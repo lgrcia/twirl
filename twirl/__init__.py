@@ -2,61 +2,99 @@ import astropy.units as u
 import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy.wcs.utils import fit_wcs_from_points
-from pkg_resources import get_distribution
 
-from . import utils
-from .config import ConfigManager
-
-CONFIG = ConfigManager()
+from twirl.geometry import pad
+from twirl.match import cross_match, find_transform, get_transform_matrix
 
 
-def gaia_radecs(center, fov, limit=3000):
+def compute_wcs(xy: np.ndarray, radecs: np.ndarray, tolerance: int = 5):
+    """Compute WCS based on unordered pixel vs. sky coordinates
+
+    Parameters
+    ----------
+    xy : np.ndarray
+        pixel coordinates
+    radecs : np.ndarray
+        RA-DEC coordinates (in deg)
+    tolerance : int, optional
+        minimum distance (in units of xy) between points to be cross-matched,
+        by default 5
+
+    Returns
+    -------
+    astropy.wcs.WCS
+        image WCS
+    """
+    M = find_transform(radecs, xy, tolerance=tolerance)
+    radecs_xy = (M @ pad(radecs).T)[0:2].T
+    i, j = cross_match(xy, radecs_xy).T
+    M = get_transform_matrix(radecs[j], xy[i])
+    radecs_xy = (M @ pad(radecs).T)[0:2].T
+    i, j = cross_match(xy, radecs_xy).T
+    return fit_wcs_from_points(xy[i].T, SkyCoord(radecs[j], unit="deg"))
+
+
+def gaia_radecs(center, fov, limit=10000, circular=True):
+    """
+    Return RA-DEC (deg) of gaia stars in the image based on the image center and
+    field-of-view
+
+
+    query from https://gea.esac.esa.int/archive/documentation/GEDR3/Gaia_archive/
+    chap_datamodel/sec_dm_main_tables/ssec_dm_gaia_source.html
+
+    TODO: adapt to non-square images
+
+    Parameters
+    ----------
+    center : tuple or astropy.coordinates.SkyCoord
+        image center sky coordinates (deg)
+    fov : float or astropy.units.Unit
+        field-of-view (deg)
+    limit : int, optional
+        limit queried sources, by default 10000
+    circular : bool, optional
+        whether query is circular, by default True
+
+    Returns
+    -------
+    np.ndarray
+        RA-DEC, shape (n, 2)
+    """
+
     from astroquery.gaia import Gaia
 
-    job = Gaia.launch_job(
-        f"select top {limit} ra, dec from gaiadr2.gaia_source where "
-        "1=CONTAINS("
-        f"POINT('ICRS', {center[0]}, {center[1]}), "
-        f"CIRCLE('ICRS',ra, dec, {fov/2}))"
-        # f"ra between {center[0]-fov/2} and {center[0]+fov/2} and "
-        # f"dec between {center[1]-fov/2} and {center[1]+fov/2}"
-        "order by phot_g_mean_mag"
-    )
+    if isinstance(center, SkyCoord):
+        ra = center.ra.to(u.deg).value
+        dec = center.dec.to(u.deg).value
+
+    if not isinstance(fov, u.Quantity):
+        fov = fov * u.deg
+
+    if fov.ndim == 1:
+        ra_fov, dec_fov = fov.to(u.deg).value
+    else:
+        ra_fov = dec_fov = fov.to(u.deg).value
+
+    radius = np.min([ra_fov, dec_fov]) / 2
+
+    fields = "ra, dec"
+
+    if circular:
+        job = Gaia.launch_job(
+            f"select top {limit} {fields} from gaiadr2.gaia_source where "
+            "1=CONTAINS("
+            f"POINT('ICRS', {ra}, {dec}), "
+            f"CIRCLE('ICRS',ra, dec, {radius}))"
+            "order by phot_g_mean_mag"
+        )
+    else:
+        job = Gaia.launch_job(
+            f"select top {limit} {fields} from gaiadr2.gaia_source where "
+            f"ra BETWEEN {ra-ra_fov/2} AND {ra+ra_fov/2} AND "
+            f"dec BETWEEN {dec-dec_fov/2} AND {dec+dec_fov/2} "
+            "order by phot_g_mean_mag"
+        )
 
     table = job.get_results()
-    return np.array([table["ra"].data.data, table["dec"].data.data]).T
-
-
-def compute_wcs(stars, center, fov, offline=False, n=15):
-    if offline:
-        CONFIG.load_catalog()
-        gaias = CONFIG.current_catalog
-        isin = np.all(np.abs(gaias - center) < fov, 1)
-        gaias = gaias[isin]
-    else:
-        gaias = gaia_radecs(center, fov)
-
-    return _compute_wcs(stars, gaias, n=n)
-
-
-def _compute_wcs(stars, gaias, n=15, tolerance=10):
-    X = utils.find_transform(gaias[0:n], stars, n=n, tolerance=tolerance)
-    gaia_pixels = utils.affine_transform(X)(gaias)
-    s1, s2 = utils.cross_match(gaia_pixels, stars, return_ixds=True, tolerance=15).T
-    ras, decs = gaias[s1].T
-    gaia_coords = SkyCoord(ra=ras * u.deg, dec=decs * u.deg)
-    return fit_wcs_from_points(stars[s2].T, gaia_coords)
-
-
-def find_peaks(data, threshold=2):
-    from skimage.measure import label, regionprops
-
-    threshold = threshold * np.nanstd(data.flatten()) + np.median(data.flatten())
-    regions = regionprops(label(data > threshold), data)
-    coordinates = np.array([region.weighted_centroid[::-1] for region in regions])
-    fluxes = np.array([np.sum(region.intensity_image) for region in regions])
-
-    return coordinates[np.argsort(fluxes)[::-1]]
-
-
-__version__ = get_distribution("twirl").version
+    return np.array([table["ra"].value.data, table["dec"].value.data]).T

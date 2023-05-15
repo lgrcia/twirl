@@ -1,4 +1,5 @@
 import pathlib
+
 from setuptools import setup
 
 # The directory containing this file
@@ -9,7 +10,7 @@ README = (HERE / "README.md").read_text()
 
 setup(
     name="twirl",
-    version="0.1.3",
+    version="0.2.0",
     author="Lionel J. Garcia",
     description="twirl is an astrometric plate solving package for Python.",
     long_description=README,
@@ -17,13 +18,20 @@ setup(
     packages=["twirl"],
     license="MIT",
     url="https://github.com/lgrcia/twirl",
-    install_requires=[
-        "numpy",
-        "scipy",
-        "astropy>=4.3",
-        "matplotlib",
-        "scikit-image",
-    ],
+    install_requires=["numpy", "astropy>=4.3", "astroquery"],
+    extras_require={
+        "docs": [
+            "sphinx",
+            "docutils",
+            "jupyterlab",
+            "myst-parser",
+            "twine",
+            "sphinx-book-theme",
+            "black",
+            "myst-nb",
+            "sphinx-copybutton",
+        ]
+    },
     zip_safe=True,
     classifiers=[
         "Programming Language :: Python :: 3",
