@@ -1,72 +1,103 @@
+from typing import Tuple, Union
+
 import astropy.units as u
 import numpy as np
 from astropy.coordinates import SkyCoord
+from astropy.units import Quantity
 from astropy.wcs.utils import fit_wcs_from_points
 
 from twirl.geometry import pad
 from twirl.match import cross_match, find_transform, get_transform_matrix
 
 
-def compute_wcs(xy: np.ndarray, radecs: np.ndarray, tolerance: int = 5):
-    """Compute WCS based on unordered pixel vs. sky coordinates
+def compute_wcs(
+    pixel_coords: np.ndarray,
+    radecs: np.ndarray,
+    tolerance: int = 5,
+    asterism=4,
+    min_match=None,
+):
+    """
+    Compute the WCS solution for an image given pixel coordinates and some unordered RA-DEC values.
 
     Parameters
     ----------
-    xy : np.ndarray
-        pixel coordinates
+    pixel_coords : np.ndarray
+        Pixel coordinates of the sources in the image, shape (n, 2)
     radecs : np.ndarray
-        RA-DEC coordinates (in deg)
+        RA-DEC coordinates of the sources in the image, shape (m, 2)
     tolerance : int, optional
-        minimum distance (in units of xy) between points to be cross-matched,
-        by default 5
+        Tolerance for the matching algorithm, by default 5
+    asterism : int, optional
+        Number of sources to use for matching, by default 4
+    min_match : int, optional
+        Minimum number of matches required, by default None
 
     Returns
     -------
     astropy.wcs.WCS
-        image WCS
+        WCS solution for the image
     """
-    M = find_transform(radecs, xy, tolerance=tolerance)
+    M = find_transform(
+        radecs,
+        pixel_coords,
+        tolerance=tolerance,
+        asterism=asterism,
+        min_match=min_match,
+    )
     radecs_xy = (M @ pad(radecs).T)[0:2].T
-    i, j = cross_match(xy, radecs_xy).T
-    M = get_transform_matrix(radecs[j], xy[i])
+    i, j = cross_match(pixel_coords, radecs_xy).T
+    M = get_transform_matrix(radecs[j], pixel_coords[i])
     radecs_xy = (M @ pad(radecs).T)[0:2].T
-    i, j = cross_match(xy, radecs_xy).T
-    return fit_wcs_from_points(xy[i].T, SkyCoord(radecs[j], unit="deg"))
+    i, j = cross_match(pixel_coords, radecs_xy).T
+    return fit_wcs_from_points(pixel_coords[i].T, SkyCoord(radecs[j], unit="deg"))
 
 
-def gaia_radecs(center, fov, limit=10000, circular=True):
+def gaia_radecs(
+    center: Union[Tuple[float, float], SkyCoord],
+    fov: Union[float, Quantity],
+    limit: int = 10000,
+    circular: bool = True,
+) -> np.ndarray:
     """
-    Return RA-DEC (deg) of gaia stars in the image based on the image center and
-    field-of-view
-
-
-    query from https://gea.esac.esa.int/archive/documentation/GEDR3/Gaia_archive/
-    chap_datamodel/sec_dm_main_tables/ssec_dm_gaia_source.html
-
-    TODO: adapt to non-square images
+    Query the Gaia archive to retrieve the RA-DEC coordinates of stars within a given field-of-view (FOV) centered on a given sky position.
 
     Parameters
     ----------
     center : tuple or astropy.coordinates.SkyCoord
-        image center sky coordinates (deg)
-    fov : float or astropy.units.Unit
-        field-of-view (deg)
+        The sky coordinates of the center of the FOV. If a tuple is given, it should contain the RA and DEC in degrees.
+    fov : float or astropy.units.Quantity
+        The field-of-view of the FOV in degrees. If a float is given, it is assumed to be in degrees.
     limit : int, optional
-        limit queried sources, by default 10000
+        The maximum number of sources to retrieve from the Gaia archive. By default, it is set to 10000.
     circular : bool, optional
-        whether query is circular, by default True
+        Whether to perform a circular or a rectangular query. By default, it is set to True.
 
     Returns
     -------
     np.ndarray
-        RA-DEC, shape (n, 2)
-    """
+        An array of shape (n, 2) containing the RA-DEC coordinates of the retrieved sources in degrees.
 
+    Raises
+    ------
+    ImportError
+        If the astroquery package is not installed.
+
+    Examples
+    --------
+    >>> from astropy.coordinates import SkyCoord
+    >>> from twirl import gaia_radecs
+    >>> center = SkyCoord(ra=10.68458, dec=41.26917, unit='deg')
+    >>> fov = 0.1
+    >>> radecs = gaia_radecs(center, fov)
+    """
     from astroquery.gaia import Gaia
 
     if isinstance(center, SkyCoord):
-        ra = center.ra.to(u.deg).value
-        dec = center.dec.to(u.deg).value
+        ra = center.ra.deg
+        dec = center.dec.deg
+    else:
+        ra, dec = center
 
     if not isinstance(fov, u.Quantity):
         fov = fov * u.deg

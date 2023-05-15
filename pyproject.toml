@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "twirl"
-version = "0.2.0"
+version = "0.3.0"
 description = "Astrometric plate solving in Python"
 authors = [
   "Lionel J. Garcia <lionel_garcia@live.fr>"
