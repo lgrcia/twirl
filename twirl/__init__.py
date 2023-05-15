@@ -7,7 +7,9 @@ from twirl.geometry import pad
 from twirl.match import cross_match, find_transform, get_transform_matrix
 
 
-def compute_wcs(xy: np.ndarray, radecs: np.ndarray, tolerance: int = 5):
+def compute_wcs(
+    xy: np.ndarray, radecs: np.ndarray, tolerance: int = 5, asterism=4, min_match=None
+):
     """Compute WCS based on unordered pixel vs. sky coordinates
 
     Parameters
@@ -25,7 +27,9 @@ def compute_wcs(xy: np.ndarray, radecs: np.ndarray, tolerance: int = 5):
     astropy.wcs.WCS
         image WCS
     """
-    M = find_transform(radecs, xy, tolerance=tolerance)
+    M = find_transform(
+        radecs, xy, tolerance=tolerance, asterism=asterism, min_match=min_match
+    )
     radecs_xy = (M @ pad(radecs).T)[0:2].T
     i, j = cross_match(xy, radecs_xy).T
     M = get_transform_matrix(radecs[j], xy[i])
