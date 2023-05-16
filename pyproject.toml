@@ -2,12 +2,10 @@
 name = "twirl"
 version = "0.3.2"
 description = "Astrometric plate solving in Python"
-authors = [
-  "Lionel J. Garcia <lionel_garcia@live.fr>"
-]
+authors = ["Lionel J. Garcia <lionel_garcia@live.fr>"]
 maintainers = [
   "Lionel J. Garcia <lionel_garcia@live.fr>",
-  "Michael J. Roberts <michael@observerly.com>"
+  "Michael J. Roberts <michael@observerly.com>",
 ]
 license = "MIT"
 readme = "README.md"
@@ -22,7 +20,7 @@ astroquery = "^0.4.6"
 matplotlib = "^3.6.2"
 numpy = "^1.23.5"
 requests = "^2.28.1"
-scikit-image = "^0.20.0"
+scikit-image = "^0.19.3"
 scipy = "^1.9.3"
 
 [tool.poetry.group.dev.dependencies]
@@ -45,7 +43,6 @@ sphinx-copybutton = "*"
 photutils = "^1.6.0"
 scipy = "*"
 matplotlib = "*"
-scikit-image = "^0.20.0"
 pandas = "^1.5.3"
 
 [build-system]
@@ -54,15 +51,15 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.extras]
 docs = [
-    "sphinx",
-    "docutils",
-    "jupyterlab",
-    "myst-parser",
-    "twine",
-    "sphinx-book-theme",
-    "black",
-    "myst-nb",
-    "sphinx-copybutton",
+  "sphinx",
+  "docutils",
+  "jupyterlab",
+  "myst-parser",
+  "twine",
+  "sphinx-book-theme",
+  "black",
+  "myst-nb",
+  "sphinx-copybutton",
 ]
 
 [tool.black]
@@ -86,75 +83,75 @@ ignore = []
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.
 fixable = [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "I",
-    "N",
-    "Q",
-    "S",
-    "T",
-    "W",
-    "ANN",
-    "ARG",
-    "BLE",
-    "COM",
-    "DJ",
-    "DTZ",
-    "EM",
-    "ERA",
-    "EXE",
-    "FBT",
-    "ICN",
-    "INP",
-    "ISC",
-    "NPY",
-    "PD",
-    "PGH",
-    "PIE",
-    "PL",
-    "PT",
-    "PTH",
-    "PYI",
-    "RET",
-    "RSE",
-    "RUF",
-    "SIM",
-    "SLF",
-    "TCH",
-    "TID",
-    "TRY",
-    "UP",
-    "YTT",
+  "A",
+  "B",
+  "C",
+  "D",
+  "E",
+  "F",
+  "G",
+  "I",
+  "N",
+  "Q",
+  "S",
+  "T",
+  "W",
+  "ANN",
+  "ARG",
+  "BLE",
+  "COM",
+  "DJ",
+  "DTZ",
+  "EM",
+  "ERA",
+  "EXE",
+  "FBT",
+  "ICN",
+  "INP",
+  "ISC",
+  "NPY",
+  "PD",
+  "PGH",
+  "PIE",
+  "PL",
+  "PT",
+  "PTH",
+  "PYI",
+  "RET",
+  "RSE",
+  "RUF",
+  "SIM",
+  "SLF",
+  "TCH",
+  "TID",
+  "TRY",
+  "UP",
+  "YTT",
 ]
 unfixable = []
 
 # Exclude a variety of commonly ignored directories.
 exclude = [
-    ".bzr",
-    ".direnv",
-    ".eggs",
-    ".git",
-    ".hg",
-    ".mypy_cache",
-    ".nox",
-    ".pants.d",
-    ".pytype",
-    ".ruff_cache",
-    ".svn",
-    ".tox",
-    ".venv",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "venv",
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".hg",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "venv",
 ]
 
 # Same as Black.
