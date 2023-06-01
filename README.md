@@ -154,3 +154,5 @@ Lang, D. et al. (2010). _Astrometry.net: Blind Astrometric Calibration of Arbitr
 implemented in
 
 Garcia, L. J. et al. (2022). prose: a Python framework for modular astronomical images processing. MNRAS, vol. 509, no. 4, pp. 4817–4828, 2022. [doi:10.1093/mnras/stab3113](https://academic.oup.com/mnras/article-abstract/509/4/4817/6414007).
+
+See this [documentation page](https://twirl.readthedocs.io/en/latest/md/acknowledgement.html) for the BibTeX entries.
