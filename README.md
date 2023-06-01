@@ -62,7 +62,7 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 
 # Open some FITS image
-hdul = fits.open("...")[0]
+hdu = fits.open("...")[0]
 
 # get the center of the image
 ra, dec = hdu.header["RA"], hdu.header["DEC"]
