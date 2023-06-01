@@ -62,16 +62,16 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 
 # Open some FITS image
-hdul = fits.open("...")
+hdul = fits.open("...")[0]
 
 # get the center of the image
-ra, dec = header["RA"], header["DEC"]
+ra, dec = hdu.header["RA"], hdu.header["DEC"]
 center = SkyCoord(ra, dec, unit=["deg", "deg"])
 
 # and the size of its field of view
-pixel = 0.66 * u.arcsec # known pixel scale
-shape = data.shape
-fov = np.max(shape)*pixel.to(u.deg)
+pixel = 0.66 * u.arcsec  # known pixel scale
+shape = hdu.data.shape
+fov = np.max(shape) * pixel.to(u.deg)
 ```
 
 We can then query the gaia stars in the field using this information
@@ -86,10 +86,10 @@ and match the queried stars to stars detected in the image
 
 ```python
 # detect stars in the image
-stars = twirl.find_peaks(data)[0:12]
+pixel_coords = twirl.find_peaks(hdu.data)[0:12]
 
 # compute the World Coordinate System
-wcs = twirl.compute_wcs(stars, center, fov)
+wcs = twirl.compute_wcs(pixel_coords, sky_coords)
 ```
 leading to a World Coordinate System object.
 
