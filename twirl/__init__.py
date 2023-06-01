@@ -1,10 +1,12 @@
 from typing import Tuple, Union
 
+import astropy
 import astropy.units as u
 import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy.units import Quantity
-from astropy.wcs.utils import fit_wcs_from_points
+from astropy.wcs.utils import WCS, fit_wcs_from_points
+from skimage.measure import label, regionprops
 
 from twirl.geometry import pad
 from twirl.match import cross_match, find_transform, get_transform_matrix
@@ -16,7 +18,7 @@ def compute_wcs(
     tolerance: int = 5,
     asterism=4,
     min_match=None,
-):
+) -> WCS:
     """
     Compute the WCS solution for an image given pixel coordinates and some unordered RA-DEC values.
 
@@ -129,3 +131,30 @@ def gaia_radecs(
 
     table = job.get_results()
     return np.array([table["ra"].value.data, table["dec"].value.data]).T
+
+
+def find_peaks(data: np.ndarray, threshold: float = 2.0) -> np.ndarray:
+    """
+    Find the coordinates of the peaks in a 2D array.
+
+    Parameters
+    ----------
+    data : np.ndarray
+        The 2D array to search for peaks.
+    threshold : float, optional
+        The threshold (in unit of image standard deviation) above which a pixel is considered
+        part of a peak, i.e.
+        The default is 2.0.
+
+    Returns
+    -------
+    np.ndarray
+        An array of shape (N, 2) containing the (x, y) coordinates of the N peaks
+        found in the input array. The peaks are sorted by decreasing flux.
+    """
+    threshold = threshold * np.nanstd(data) + np.nanmedian(data)
+    regions = regionprops(label(data > threshold), data)
+    coordinates = np.array([region.weighted_centroid[::-1] for region in regions])
+    fluxes = np.array([np.sum(region.intensity_image) for region in regions])
+
+    return coordinates[np.argsort(fluxes)[::-1]]
