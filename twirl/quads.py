@@ -5,20 +5,15 @@ import numpy as np
 from twirl.geometry import proj, u1u2
 
 
-def _reorder(q):
-    """
-    order coordinates from closest to first one
-    """
-    distances = np.linalg.norm(q[:, :, None] - q.T[None, :, :], axis=1)
-    q0i = np.min(np.unravel_index(np.argmax(distances), distances.shape))
-    q0 = q[q0i]
-    q123 = np.delete(q.copy(), q0i, axis=0)
-    distance_from_q0 = np.linalg.norm(q123 - q0, axis=1)
-    idxs = np.argsort(1 / distance_from_q0)
-    return np.array([q0, *q123[idxs]])
-
-
-reorder = np.vectorize(_reorder, signature="(n, m)->(n, m)")
+def reorder(quads):
+    distances = np.linalg.norm(
+        quads[:, :, :, None] - np.rollaxis(quads.T, 2)[:, None, :, :], axis=2
+    )
+    i = np.argmax(np.max(distances, 1), 1)
+    idxs = np.roll(
+        np.argsort(distances[range(len(quads)), i], axis=1)[:, ::-1], 1, axis=1
+    )
+    return np.array([q[i] for q, i in zip(quads, idxs)])
 
 
 def good_quads(quads, circletol=0.01):
@@ -34,24 +29,42 @@ def good_quads(quads, circletol=0.01):
     return np.all(in_circle, axis=1)
 
 
-def _quad_hash(quad):
-    """
-    from 4 coordinates produce the quad hash code
-    """
-    a, b, c, d = quad
+def quad_hash(quads):
+    a, b, c, d = np.rollaxis(quads, 1)
+
+    norm = np.linalg.norm(b - a, axis=1)
+
+    def u1u2(a, b):
+        """compute x, y basis as defined in Lang2009"""
+        co_m = np.cos(-np.pi / 4)
+        si_m = np.sin(-np.pi / 4)
+        co_p = np.cos(np.pi / 4)
+        si_p = np.sin(np.pi / 4)
+        rm = np.array([[co_m, -si_m], [si_m, co_m]])
+        rp = np.array([[co_p, -si_p], [si_p, co_p]])
+        x = (rm @ (b - a).T).T + a
+        y = (rp @ (b - a).T).T + a
+        return x, y
+
     u1, u2 = u1u2(a, b)
-    h = np.linalg.norm(b - a)
-    return np.array(
-        [
-            proj(c, a, u1, norm=True) / h,
-            proj(d, a, u1, norm=True) / h,
-            proj(c, a, u2, norm=True) / h,
-            proj(d, a, u2, norm=True) / h,
-        ]
-    ), np.array([a, b])
 
+    def proj(p, origin, axe):
+        """projection of a point p on a segment from origin to axe"""
+        n = axe - origin
+        n /= np.linalg.norm(n, axis=1)[:, None]
+        return np.sum((p - origin) * n, 1)
 
-quad_hash = np.vectorize(_quad_hash, signature="(n,m)->(k), (l, 2)")
+    return (
+        np.array(
+            [
+                proj(c, a, u1) / norm,
+                proj(d, a, u1) / norm,
+                proj(c, a, u2) / norm,
+                proj(d, a, u2) / norm,
+            ]
+        ).T,
+        np.rollaxis(np.array([a, b]), 1),
+    )
 
 
 def clean_quads(xy):
