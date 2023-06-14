@@ -67,6 +67,7 @@ def find_transform(
     tolerance: int = 12,
     min_match: Optional[int] = None,
     asterism: int = 4,
+    max_search: int = 10000,
 ) -> np.ndarray:
     """
     Finds the transformation matrix that maps the coordinates in `coords2` to the coordinates in `coords1`.
@@ -100,21 +101,23 @@ def find_transform(
     hash1, asterism_coords1 = asterism_function(coords1)
     hash2, asterism_coords2 = asterism_function(coords2)
     distances = np.linalg.norm(hash1[:, None, :] - hash2[None, :, :], axis=2)
-    shortest_hash = np.argmin(distances, 1)
+    best_couples = np.array(
+        np.unravel_index(np.argsort(distances.flatten())[0:max_search], distances.shape)
+    ).T
     ns = []
 
-    for i, j in enumerate(shortest_hash):
+    for i, j in best_couples:
         M = get_transform_matrix(asterism_coords2[j], asterism_coords1[i])
         test = (M @ pad(coords2).T)[0:2].T
         n = count_cross_match(coords1, test, tolerance)
         ns.append(n)
+
         if min_match is not None:
             if n >= min_match:
                 break
 
-        i = np.argmax(ns)
-        M = get_transform_matrix(
-            asterism_coords2[np.argmin(distances, 1)[i]], asterism_coords1[i]
-        )
+    i, j = best_couples[np.argmax(ns)]
+
+    M = get_transform_matrix(asterism_coords2[j], asterism_coords1[i])
 
     return M
