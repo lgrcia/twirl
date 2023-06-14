@@ -1,6 +1,7 @@
 from typing import Optional
 
 import numpy as np
+from scipy.spatial import cKDTree
 
 from twirl.geometry import get_transform_matrix, pad
 from twirl.quads import hashes as hash4
@@ -64,10 +65,10 @@ def cross_match(coords1, coords2, tolerance=10):
 def find_transform(
     radecs: np.ndarray,
     pixels: np.ndarray,
-    tolerance: int = 12,
-    min_match: Optional[int] = None,
+    min_match: float = 0.7,
     asterism: int = 4,
-    max_search: int = 10000,
+    rtol: float = 0.02,
+    tolerance: float = 12,
 ) -> np.ndarray:
     """
     Finds the transformation matrix that maps the coordinates in `coords2` to the coordinates in `coords1`.
@@ -78,12 +79,16 @@ def find_transform(
         The coordinates to be transformed, shape (n, 2).
     pixels : np.ndarray
         The target coordinates, shape (m, 2).
-    tolerance : int, optional
-        The tolerance of the match, given in `coords1` points units, by default 12.
-    min_match : Optional[int], optional
-        The minimum number of matches required to stop the search, by default None.
+    min_match : float, optional
+        The minimum fraction of points that must be matched to stop the search,
+        by default 0.7.
     asterism : int, optional
         The asterism to use for hashing, either 3 or 4, by default 4.
+    rtol : float, optional
+        The tolerance on hash closeness to make the kdtree query, by default 0.02.
+    tolerance : float, optional
+        The absolute tolerance of the match, given in `pixels` points units,
+        by default 12.
 
     Returns
     -------
@@ -100,26 +105,30 @@ def find_transform(
 
     hashes_pixels, asterism_pixels = asterism_function(pixels)
     hashes_radecs, asterism_radecs = asterism_function(radecs)
-    distances = np.linalg.norm(
-        hashes_pixels[:, None, :] - hashes_radecs[None, :, :], axis=2
-    )
-    best_couples = np.array(
-        np.unravel_index(np.argsort(distances.flatten())[0:max_search], distances.shape)
-    ).T
+
+    tree_pixels = cKDTree(hashes_pixels)
+    tree_radecs = cKDTree(hashes_radecs)
+    pairs = []
+
+    ball_query = tree_pixels.query_ball_tree(tree_radecs, r=rtol)
     ns = []
 
-    for i, j in best_couples:
+    for i, j in enumerate(ball_query):
+        if len(j) > 0:
+            pairs += [[i, k] for k in j]
+
+    for i, j in pairs:
         M = get_transform_matrix(asterism_radecs[j], asterism_pixels[i])
         test = (M @ pad(radecs).T)[0:2].T
         n = count_cross_match(pixels, test, tolerance)
         ns.append(n)
 
         if min_match is not None:
-            if n >= min_match:
-                break
+            if isinstance(min_match, float):
+                if n >= min_match * len(pixels):
+                    break
 
-    i, j = best_couples[np.argmax(ns)]
-
+    i, j = pairs[np.argmax(ns)]
     M = get_transform_matrix(asterism_radecs[j], asterism_pixels[i])
 
     return M

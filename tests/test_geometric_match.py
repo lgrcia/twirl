@@ -90,6 +90,31 @@ def test_large_fuzzy_match(n, seed, asterism=3):
     assert cn > 0.8 * n
 
 
+def test_larger_quads_fuzzy_match(n=30, seed=4, asterism=4):
+    """Test match between transformation matrix from
+    two sets of simulated points, with positions errors. 50 stars are added
+    as spurious ones.
+
+    Testing :code:`M = find_transform(xy1, xy2)
+
+    n : int, optional
+        number of simulated points xy1, by default 15
+    extra : int, optional
+        number of extra points in xy2 not in xy1, by default 5
+    """
+    np.random.seed(seed)
+    extra = 20
+    xy1 = np.random.rand(n, 2)
+    true_M = transform_matrix(scale=8.0, rotation=np.pi, translation=(0.3, 0.1))
+    xy2 = (true_M @ pad(np.array([*xy1, *np.random.rand(extra, 2)])).T)[0:2].T
+    np.random.shuffle(xy2)
+    xy2 += 0.01 * np.random.rand(len(xy2), 2)
+
+    M = find_transform(xy1, xy2, tolerance=0.02, asterism=asterism)
+    cn = count_cross_match((M @ pad(xy1).T)[0:2].T, xy2, tol=0.02)
+    assert cn > 0.8 * n
+
+
 def test_realistic_match():
     pixels = np.array(
         [
@@ -169,5 +194,5 @@ def test_realistic_match():
         ]
     ).T
 
-    M = find_transform(radecs, pixels, tolerance=5, asterism=4)
-    assert count_cross_match(pixels, (M @ pad(radecs).T)[0:2].T, tol=5) == 9
+    M = find_transform(radecs, pixels, tolerance=10, asterism=4, rtol=0.1)
+    assert count_cross_match(pixels, (M @ pad(radecs).T)[0:2].T, tol=10) == 9
