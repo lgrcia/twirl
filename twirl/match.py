@@ -62,8 +62,8 @@ def cross_match(coords1, coords2, tolerance=10):
 
 
 def find_transform(
-    coords2: np.ndarray,
-    coords1: np.ndarray,
+    radecs: np.ndarray,
+    pixels: np.ndarray,
     tolerance: int = 12,
     min_match: Optional[int] = None,
     asterism: int = 4,
@@ -74,9 +74,9 @@ def find_transform(
 
     Parameters
     ----------
-    coords2 : np.ndarray
+    radecs : np.ndarray
         The coordinates to be transformed, shape (n, 2).
-    coords1 : np.ndarray
+    pixels : np.ndarray
         The target coordinates, shape (m, 2).
     tolerance : int, optional
         The tolerance of the match, given in `coords1` points units, by default 12.
@@ -88,7 +88,7 @@ def find_transform(
     Returns
     -------
     np.ndarray
-        The transformation matrix that maps `coords2` to `coords1`.
+        The transformation matrix that maps `radecs` to `pixels`.
     """
 
     if asterism == 3:
@@ -98,18 +98,20 @@ def find_transform(
     else:
         raise ValueError("available asterisms are 3 and 4")
 
-    hash1, asterism_coords1 = asterism_function(coords1)
-    hash2, asterism_coords2 = asterism_function(coords2)
-    distances = np.linalg.norm(hash1[:, None, :] - hash2[None, :, :], axis=2)
+    hashes_pixels, asterism_pixels = asterism_function(pixels)
+    hashes_radecs, asterism_radecs = asterism_function(radecs)
+    distances = np.linalg.norm(
+        hashes_pixels[:, None, :] - hashes_radecs[None, :, :], axis=2
+    )
     best_couples = np.array(
         np.unravel_index(np.argsort(distances.flatten())[0:max_search], distances.shape)
     ).T
     ns = []
 
     for i, j in best_couples:
-        M = get_transform_matrix(asterism_coords2[j], asterism_coords1[i])
-        test = (M @ pad(coords2).T)[0:2].T
-        n = count_cross_match(coords1, test, tolerance)
+        M = get_transform_matrix(asterism_radecs[j], asterism_pixels[i])
+        test = (M @ pad(radecs).T)[0:2].T
+        n = count_cross_match(pixels, test, tolerance)
         ns.append(n)
 
         if min_match is not None:
@@ -118,6 +120,6 @@ def find_transform(
 
     i, j = best_couples[np.argmax(ns)]
 
-    M = get_transform_matrix(asterism_coords2[j], asterism_coords1[i])
+    M = get_transform_matrix(asterism_radecs[j], asterism_pixels[i])
 
     return M
