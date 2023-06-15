@@ -103,7 +103,7 @@ def test_larger_quads_fuzzy_match(n=30, seed=4, asterism=4):
         number of extra points in xy2 not in xy1, by default 5
     """
     np.random.seed(seed)
-    extra = 20
+    extra = 30
     xy1 = np.random.rand(n, 2)
     true_M = transform_matrix(scale=8.0, rotation=np.pi, translation=(0.3, 0.1))
     xy2 = (true_M @ pad(np.array([*xy1, *np.random.rand(extra, 2)])).T)[0:2].T
@@ -194,5 +194,5 @@ def test_realistic_match():
         ]
     ).T
 
-    M = find_transform(radecs, pixels, tolerance=10, asterism=4, rtol=0.1)
+    M = find_transform(radecs, pixels, tolerance=10, asterism=4, quads_tolerance=0.1)
     assert count_cross_match(pixels, (M @ pad(radecs).T)[0:2].T, tol=10) == 9

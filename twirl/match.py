@@ -67,11 +67,11 @@ def find_transform(
     pixels: np.ndarray,
     min_match: float = 0.7,
     asterism: int = 4,
-    rtol: float = 0.02,
+    quads_tolerance: float = 0.02,
     tolerance: float = 12,
 ) -> np.ndarray:
     """
-    Finds the transformation matrix that maps the coordinates in `coords2` to the coordinates in `coords1`.
+    Finds the transformation matrix from `radecs` to `pixels`.
 
     Parameters
     ----------
@@ -80,20 +80,24 @@ def find_transform(
     pixels : np.ndarray
         The target coordinates, shape (m, 2).
     min_match : float, optional
-        The minimum fraction of points that must be matched to stop the search,
-        by default 0.7.
+        The fraction of `pixels` coordinates that must be matched to stop the search.
+        I.e., if the number of matched points is `>= min_match * len(pixels)`, the
+        search stops and return the found transform. By default 0.7.
     asterism : int, optional
         The asterism to use for hashing, either 3 or 4, by default 4.
-    rtol : float, optional
-        The tolerance on hash closeness to make the kdtree query, by default 0.02.
+    quads_tolerance : float, optional
+        The minimum euclidean distance between two quads to be matched and tested.
+        By default 0.02.
     tolerance : float, optional
-        The absolute tolerance of the match, given in `pixels` points units,
-        by default 12.
+        The minimum distance between two coordinates to be considered cross-matched
+        (in `pixels` units). This serves to compute the number of coordinates being
+        matched between `radecs` and `pixels` for a given transform.
+        By default 12.
 
     Returns
     -------
     np.ndarray
-        The transformation matrix that maps `radecs` to `pixels`.
+        The transformation matrix from `radecs` to `pixels`.
     """
 
     if asterism == 3:
@@ -110,8 +114,8 @@ def find_transform(
     tree_radecs = cKDTree(hashes_radecs)
     pairs = []
 
-    ball_query = tree_pixels.query_ball_tree(tree_radecs, r=rtol)
-    ns = []
+    ball_query = tree_pixels.query_ball_tree(tree_radecs, r=quads_tolerance)
+    matches = []
 
     for i, j in enumerate(ball_query):
         if len(j) > 0:
@@ -120,15 +124,14 @@ def find_transform(
     for i, j in pairs:
         M = get_transform_matrix(asterism_radecs[j], asterism_pixels[i])
         test = (M @ pad(radecs).T)[0:2].T
-        n = count_cross_match(pixels, test, tolerance)
-        ns.append(n)
+        match = count_cross_match(pixels, test, tolerance)
+        matches.append(match)
 
         if min_match is not None:
-            if isinstance(min_match, float):
-                if n >= min_match * len(pixels):
-                    break
+            if match >= min_match * len(pixels):
+                break
 
-    i, j = pairs[np.argmax(ns)]
+    i, j = pairs[np.argmax(matches)]
     M = get_transform_matrix(asterism_radecs[j], asterism_pixels[i])
 
     return M
