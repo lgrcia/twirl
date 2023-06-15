@@ -1,6 +1,7 @@
 from typing import Optional
 
 import numpy as np
+from scipy.spatial import cKDTree
 
 from twirl.geometry import get_transform_matrix, pad
 from twirl.quads import hashes as hash4
@@ -62,32 +63,41 @@ def cross_match(coords1, coords2, tolerance=10):
 
 
 def find_transform(
-    coords2: np.ndarray,
-    coords1: np.ndarray,
-    tolerance: int = 12,
-    min_match: Optional[int] = None,
+    radecs: np.ndarray,
+    pixels: np.ndarray,
+    min_match: float = 0.7,
     asterism: int = 4,
+    quads_tolerance: float = 0.02,
+    tolerance: float = 12,
 ) -> np.ndarray:
     """
-    Finds the transformation matrix that maps the coordinates in `coords2` to the coordinates in `coords1`.
+    Finds the transformation matrix from `radecs` to `pixels`.
 
     Parameters
     ----------
-    coords2 : np.ndarray
+    radecs : np.ndarray
         The coordinates to be transformed, shape (n, 2).
-    coords1 : np.ndarray
+    pixels : np.ndarray
         The target coordinates, shape (m, 2).
-    tolerance : int, optional
-        The tolerance of the match, given in `coords1` points units, by default 12.
-    min_match : Optional[int], optional
-        The minimum number of matches required to stop the search, by default None.
+    min_match : float, optional
+        The fraction of `pixels` coordinates that must be matched to stop the search.
+        I.e., if the number of matched points is `>= min_match * len(pixels)`, the
+        search stops and return the found transform. By default 0.7.
     asterism : int, optional
         The asterism to use for hashing, either 3 or 4, by default 4.
+    quads_tolerance : float, optional
+        The minimum euclidean distance between two quads to be matched and tested.
+        By default 0.02.
+    tolerance : float, optional
+        The minimum distance between two coordinates to be considered cross-matched
+        (in `pixels` units). This serves to compute the number of coordinates being
+        matched between `radecs` and `pixels` for a given transform.
+        By default 12.
 
     Returns
     -------
     np.ndarray
-        The transformation matrix that maps `coords2` to `coords1`.
+        The transformation matrix from `radecs` to `pixels`.
     """
 
     if asterism == 3:
@@ -97,24 +107,31 @@ def find_transform(
     else:
         raise ValueError("available asterisms are 3 and 4")
 
-    hash1, asterism_coords1 = asterism_function(coords1)
-    hash2, asterism_coords2 = asterism_function(coords2)
-    distances = np.linalg.norm(hash1[:, None, :] - hash2[None, :, :], axis=2)
-    shortest_hash = np.argmin(distances, 1)
-    ns = []
+    hashes_pixels, asterism_pixels = asterism_function(pixels)
+    hashes_radecs, asterism_radecs = asterism_function(radecs)
 
-    for i, j in enumerate(shortest_hash):
-        M = get_transform_matrix(asterism_coords2[j], asterism_coords1[i])
-        test = (M @ pad(coords2).T)[0:2].T
-        n = count_cross_match(coords1, test, tolerance)
-        ns.append(n)
+    tree_pixels = cKDTree(hashes_pixels)
+    tree_radecs = cKDTree(hashes_radecs)
+    pairs = []
+
+    ball_query = tree_pixels.query_ball_tree(tree_radecs, r=quads_tolerance)
+    matches = []
+
+    for i, j in enumerate(ball_query):
+        if len(j) > 0:
+            pairs += [[i, k] for k in j]
+
+    for i, j in pairs:
+        M = get_transform_matrix(asterism_radecs[j], asterism_pixels[i])
+        test = (M @ pad(radecs).T)[0:2].T
+        match = count_cross_match(pixels, test, tolerance)
+        matches.append(match)
+
         if min_match is not None:
-            if n >= min_match:
+            if match >= min_match * len(pixels):
                 break
 
-        i = np.argmax(ns)
-        M = get_transform_matrix(
-            asterism_coords2[np.argmin(distances, 1)[i]], asterism_coords1[i]
-        )
+    i, j = pairs[np.argmax(matches)]
+    M = get_transform_matrix(asterism_radecs[j], asterism_pixels[i])
 
     return M
