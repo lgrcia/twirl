@@ -16,8 +16,9 @@ def compute_wcs(
     pixel_coords: np.ndarray,
     radecs: np.ndarray,
     tolerance: int = 5,
+    quads_tolerance: float = 0.1,
     asterism=4,
-    min_match=None,
+    min_match=0.8,
 ) -> WCS:
     """
     Compute the WCS solution for an image given pixel coordinates and some unordered RA-DEC values.
@@ -46,6 +47,7 @@ def compute_wcs(
         tolerance=tolerance,
         asterism=asterism,
         min_match=min_match,
+        quads_tolerance=quads_tolerance,
     )
     radecs_xy = (M @ pad(radecs).T)[0:2].T
     i, j = cross_match(pixel_coords, radecs_xy).T
