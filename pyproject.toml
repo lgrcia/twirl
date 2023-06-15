@@ -20,7 +20,7 @@ astroquery = "^0.4.6"
 matplotlib = "^3.6.2"
 numpy = "^1.23.5"
 requests = "^2.28.1"
-scikit-image = "^0.19.3"
+scikit-image = "^0.21.0"
 scipy = "^1.9.3"
 
 [tool.poetry.group.dev.dependencies]
