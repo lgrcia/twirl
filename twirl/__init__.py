@@ -1,4 +1,5 @@
-from typing import Tuple, Union
+from datetime import datetime
+from typing import Optional, Tuple, Union
 
 import astropy
 import astropy.units as u
@@ -62,6 +63,8 @@ def gaia_radecs(
     fov: Union[float, Quantity],
     limit: int = 10000,
     circular: bool = True,
+    tmass: bool = False,
+    dateobs: Optional[datetime] = None,
 ) -> np.ndarray:
     """
     Query the Gaia archive to retrieve the RA-DEC coordinates of stars within a given field-of-view (FOV) centered on a given sky position.
@@ -76,6 +79,10 @@ def gaia_radecs(
         The maximum number of sources to retrieve from the Gaia archive. By default, it is set to 10000.
     circular : bool, optional
         Whether to perform a circular or a rectangular query. By default, it is set to True.
+    tmass : bool, optional
+        Whether to retrieve the 2MASS J magnitudes catelog. By default, it is set to False.
+    dateobs : datetime.datetime, optional
+        The date of the observation. If given, the proper motions of the sources will be taken into account. By default, it is set to None.
 
     Returns
     -------
@@ -113,25 +120,64 @@ def gaia_radecs(
 
     radius = np.min([ra_fov, dec_fov]) / 2
 
-    fields = "ra, dec"
-
-    if circular:
+    if circular and not tmass:
         job = Gaia.launch_job(
-            f"select top {limit} {fields} from gaiadr2.gaia_source where "
-            "1=CONTAINS("
-            f"POINT('ICRS', {ra}, {dec}), "
-            f"CIRCLE('ICRS',ra, dec, {radius}))"
-            "order by phot_g_mean_mag"
+            f"""
+            SELECT top {limit} gaia.ra, gaia.dec, gaia.pmra, gaia.pmdec
+            FROM gaiadr2.gaia_source AS gaia
+            WHERE 1=CONTAINS(
+                POINT('ICRS', {ra}, {dec}), 
+                CIRCLE('ICRS', gaia.ra, gaia.dec, {radius}))
+            ORDER BY gaia.phot_g_mean_mag
+            """
+        )
+    elif circular and tmass:
+        job = Gaia.launch_job(
+            f"""
+            SELECT top {limit} gaia.ra, gaia.dec, gaia.pmra, gaia.pmdec
+            FROM gaiadr2.gaia_source AS gaia
+            INNER JOIN gaiadr2.tmass_best_neighbour AS tmass_match ON tmass_match.source_id = gaia.source_id
+            INNER JOIN gaiadr1.tmass_original_valid AS tmass ON tmass.tmass_oid = tmass_match.tmass_oid
+            WHERE 1=CONTAINS(
+                POINT('ICRS', {ra}, {dec}), 
+                CIRCLE('ICRS', gaia.ra, gaia.dec, {radius}))
+            ORDER BY tmass.j_m
+            """
+        )
+    elif not circular and tmass:
+        job = Gaia.launch_job(
+            f"""
+            SELECT top {limit} gaia.ra, gaia.dec, gaia.pmra, gaia.pmdec
+            FROM gaiadr2.gaia_source AS gaia
+            INNER JOIN gaiadr2.tmass_best_neighbour AS tmass_match ON tmass_match.source_id = gaia.source_id
+            INNER JOIN gaiadr1.tmass_original_valid AS tmass ON tmass.tmass_oid = tmass_match.tmass_oid
+            WHERE gaia.ra BETWEEN {ra-ra_fov/2} AND {ra+ra_fov/2} AND
+            gaia.dec BETWEEN {dec-dec_fov/2} AND {dec+dec_fov/2}
+            ORDER BY tmass.j_m
+            """
         )
     else:
         job = Gaia.launch_job(
-            f"select top {limit} {fields} from gaiadr2.gaia_source where "
-            f"ra BETWEEN {ra-ra_fov/2} AND {ra+ra_fov/2} AND "
-            f"dec BETWEEN {dec-dec_fov/2} AND {dec+dec_fov/2} "
-            "order by phot_g_mean_mag"
+            f"""
+            SELECT top {limit} gaia.ra, gaia.dec, gaia.pmra, gaia.pmdec
+            FROM gaiadr2.gaia_source AS gaia
+            WHERE gaia.ra BETWEEN {ra-ra_fov/2} AND {ra+ra_fov/2} AND
+            gaia.dec BETWEEN {dec-dec_fov/2} AND {dec+dec_fov/2}
+            ORDER BY gaia.phot_g_mean_mag
+            """
         )
 
     table = job.get_results()
+    
+    # add proper motion to ra and dec
+    if dateobs is not None:
+        # calculate fractional year
+        dateobs = dateobs.year + (dateobs.timetuple().tm_yday - 1) / 365.25 # type: ignore
+        
+        years = dateobs - 2015.5 # type: ignore
+        table["ra"] += years * table["pmra"] / 1000 / 3600
+        table["dec"] += years * table["pmdec"] / 1000 / 3600
+        
     return np.array([table["ra"].value.data, table["dec"].value.data]).T
 
 
