@@ -131,7 +131,9 @@ def find_transform(
             if match >= min_match * len(pixels):
                 break
 
-    i, j = pairs[np.argmax(matches)]
-    M = get_transform_matrix(asterism_radecs[j], asterism_pixels[i])
-
-    return M
+    if len(matches) == 0:
+        return None
+    else:
+        i, j = pairs[np.argmax(matches)]
+        M = get_transform_matrix(asterism_radecs[j], asterism_pixels[i])
+        return M
