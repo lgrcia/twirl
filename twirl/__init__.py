@@ -39,7 +39,9 @@ def compute_wcs(
     Returns
     -------
     astropy.wcs.WCS
-        WCS solution for the image
+        WCS solution for the image if a match can be computed, None otherwise.
+        A match is considered to be computed if at least one source and one target
+        star are located less than `tolerance` pixels away from each other.
     """
     M = find_transform(
         radecs,
@@ -49,12 +51,15 @@ def compute_wcs(
         min_match=min_match,
         quads_tolerance=quads_tolerance,
     )
-    radecs_xy = (M @ pad(radecs).T)[0:2].T
-    i, j = cross_match(pixel_coords, radecs_xy).T
-    M = get_transform_matrix(radecs[j], pixel_coords[i])
-    radecs_xy = (M @ pad(radecs).T)[0:2].T
-    i, j = cross_match(pixel_coords, radecs_xy).T
-    return fit_wcs_from_points(pixel_coords[i].T, SkyCoord(radecs[j], unit="deg"))
+    if M is None:
+        return None
+    else:
+        radecs_xy = (M @ pad(radecs).T)[0:2].T
+        i, j = cross_match(pixel_coords, radecs_xy).T
+        M = get_transform_matrix(radecs[j], pixel_coords[i])
+        radecs_xy = (M @ pad(radecs).T)[0:2].T
+        i, j = cross_match(pixel_coords, radecs_xy).T
+        return fit_wcs_from_points(pixel_coords[i].T, SkyCoord(radecs[j], unit="deg"))
 
 
 def gaia_radecs(
