@@ -12,6 +12,17 @@ from twirl.geometry import pad
 from twirl.match import cross_match, find_transform, get_transform_matrix
 
 
+def _project_tangent_plane(center, skycoords):
+    # Calculate the tangent plane projection
+    tangent_plane_coords = skycoords.transform_to(center.skyoffset_frame())
+
+    # Access the projected coordinates
+    tangent_ra = tangent_plane_coords.lon
+    tangent_dec = tangent_plane_coords.lat
+
+    return np.array([tangent_ra.deg, tangent_dec.deg])
+
+
 def compute_wcs(
     pixel_coords: np.ndarray,
     radecs: np.ndarray,
@@ -43,6 +54,10 @@ def compute_wcs(
         A match is considered to be computed if at least one source and one target
         star are located less than `tolerance` pixels away from each other.
     """
+    original_radecs = radecs.copy()
+    center = SkyCoord(*radecs.mean(0), unit="deg")
+    radecs = _project_tangent_plane(center, SkyCoord(radecs, unit="deg")).T
+
     M = find_transform(
         radecs,
         pixel_coords,
@@ -59,7 +74,9 @@ def compute_wcs(
         M = get_transform_matrix(radecs[j], pixel_coords[i])
         radecs_xy = (M @ pad(radecs).T)[0:2].T
         i, j = cross_match(pixel_coords, radecs_xy).T
-        return fit_wcs_from_points(pixel_coords[i].T, SkyCoord(radecs[j], unit="deg"))
+        return fit_wcs_from_points(
+            pixel_coords[i].T, SkyCoord(original_radecs[j], unit="deg")
+        )
 
 
 def gaia_radecs(
