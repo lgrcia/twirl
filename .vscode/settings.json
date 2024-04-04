@@ -1,18 +1,16 @@
 {
   "editor.formatOnSave": true,
   "python.formatting.provider": "black",
-  "python.formatting.blackArgs": [
-    "--line-length=88"
-  ],
+  "python.formatting.blackArgs": ["--line-length=88"],
   "python.linting.enabled": true,
   "python.linting.flake8Enabled": false,
   "python.linting.pylintEnabled": false,
   "[python]": {
     "editor.codeActionsOnSave": {
-      "source.organizeImports": true
+      "source.organizeImports": "explicit"
     },
     "editor.formatOnPaste": false,
-    "editor.defaultFormatter": "ms-python.black-formatter"
+    "editor.defaultFormatter": "ms-python.black-formatter",
   },
   "python.testing.pytestArgs": [
     "tests"
