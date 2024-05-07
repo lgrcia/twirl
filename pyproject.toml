@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "twirl"
-version = "0.4.0"
+version = "0.5.0"
 description = "Astrometric plate solving in Python"
 authors = ["Lionel J. Garcia <lionel_garcia@live.fr>"]
 maintainers = [
@@ -14,13 +14,13 @@ repository = "https://github.com/lgrcia/twirl"
 keywords = ["astronomy", "astrometry", "plate-solving"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 astropy = "^5.1.1"
 astroquery = "^0.4.6"
 matplotlib = "^3.6.2"
 numpy = "^1.23.5"
 requests = "^2.28.1"
-scikit-image = "^0.21.0"
+scikit-image = "^0.22.0"
 scipy = "^1.9.3"
 
 [tool.poetry.group.dev.dependencies]
