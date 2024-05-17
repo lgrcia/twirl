@@ -8,31 +8,23 @@
   Python package for astrometric plate solving
   <br>
   <p align="center">
-    <a href="https://github.com/lgrcia/twirl">
-      <img src="https://img.shields.io/badge/github-lgrcia/twirl-blue.svg?style=flat" alt="github"/>
-    </a>
-    <a href="">
-      <img src="https://img.shields.io/badge/license-MIT-lightgray.svg?style=flat" alt="license"/>
-    </a>
-    <a href="https://ui.adsabs.harvard.edu/abs/2022MNRAS.509.4817G">
-      <img src="https://img.shields.io/badge/paper-gray.svg?style=flat" alt="paper"/>
-    </a>
-    <a href="https://twirl.readthedocs.io">
-      <img src="https://img.shields.io/badge/documentation-black.svg?style=flat" alt="documentation"/>
-    </a>
+    <a href="https://github.com/lgrcia/twirl"><img src="https://img.shields.io/badge/github-lgrcia/twirl-blue.svg?style=flat" alt="github"/></a>
+    <a href=""><img src="https://img.shields.io/badge/license-MIT-lightgray.svg?style=flat" alt="license"/></a>
+    <a href="https://ui.adsabs.harvard.edu/abs/2022MNRAS.509.4817G"><img src="https://img.shields.io/badge/paper-gray.svg?style=flat" alt="paper"/></a>
+    <a href="https://twirl.readthedocs.io"><img src="https://img.shields.io/badge/documentation-black.svg?style=flat" alt="documentation"/></a>
   </p>
 </p>
 
-twirl is an astrometric plate solving package for Python. It is suited for cases where the Right Ascension and Declination (RA, dec) coordinates of the image center and the field of view is known, computing a World Coordinate System (WCS) based on GAIA reference stars.
+When the coordinates of an image (RA, dec) and the size of its field of view is approximately known, twirl can be used to compute a World Coordinate System (WCS) using GAIA reference stars.
 
-twirl compute a WCS following these steps:
+<!-- twirl compute a WCS following these steps:
 
 1. detection of stars in the image if not provided
 2. catalog query using image known center
 3. asterisms building and matching
 4. image recombination and wcs fit using astropy.wcs
 
-Astersisms are made of 3 or 4 points. 4 points asterisms are built following Lang et al. 2009 while 3 points asterims are based on an original algorithm.
+Astersisms are made of 3 or 4 points. 4 points asterisms are built following Lang et al. 2009 while 3 points asterims are based on an original algorithm. -->
 
 ## Installation
 
