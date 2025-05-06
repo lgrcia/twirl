@@ -48,6 +48,5 @@ html_theme_options = {
 
 nb_render_image_options = {"align": "center"}
 
-html_css_files = ["style.css"]
 autodoc_typehints = "signature"
 autoclass_content = "both"
