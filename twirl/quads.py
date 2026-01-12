@@ -29,7 +29,7 @@ def good_quads(quads, circletol=0.01):
     return np.all(in_circle, axis=1)
 
 
-def quad_hash(quads):
+def quad_hash(quads, oriented=True):
     a, b, c, d = np.rollaxis(quads, 1)
 
     norm = np.linalg.norm(b - a, axis=1)
@@ -46,10 +46,12 @@ def quad_hash(quads):
         y = (rp @ (b - a).T).T + a
         return x, y
 
-    reverse = (np.cross((b - a), (b - c))) >= 0
     u1, u2 = u1u2(a, b)
-    # invert u1 and u2 for reversed quads
-    u1[reverse], u2[reverse] = u2[reverse], u1[reverse]
+
+    if oriented:
+        reverse = (np.cross((b - a), (b - c))) >= 0
+        # invert u1 and u2 for reversed quads
+        u1[reverse], u2[reverse] = u2[reverse], u1[reverse]
 
     def proj(p, origin, axe):
         """projection of a point p on a segment from origin to axe"""
