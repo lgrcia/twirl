@@ -46,7 +46,10 @@ def quad_hash(quads):
         y = (rp @ (b - a).T).T + a
         return x, y
 
+    reverse = (np.cross((b - a), (b - c))) >= 0
     u1, u2 = u1u2(a, b)
+    # invert u1 and u2 for reversed quads
+    u1[reverse], u2[reverse] = u2[reverse], u1[reverse]
 
     def proj(p, origin, axe):
         """projection of a point p on a segment from origin to axe"""
