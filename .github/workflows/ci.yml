@@ -1,4 +1,4 @@
-name: twirl/ci
+name: uv/ci
 
 on:
   pull_request:
@@ -36,10 +36,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: uv sync --group dev
-
-      - name: Override astropy version
-        run: uv pip install "astropy==${{ matrix.astropy-version }}.*"
+        run: |
+          echo "astropy==${{ matrix.astropy-version }}.*" > astropy-override.txt
+          uv sync --group dev --override astropy-override.txt
 
       - name: Run tests
         run: uv run pytest
