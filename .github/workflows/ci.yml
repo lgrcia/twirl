@@ -38,7 +38,10 @@ jobs:
       - name: Install dependencies
         run: |
           echo "astropy==${{ matrix.astropy-version }}.*" > astropy-override.txt
-          uv sync --group dev --override astropy-override.txt
+          uv add --dev "astropy==${{ matrix.astropy-version }}.*"
+
+          # 2. Sync everything in one go
+          uv sync --group dev
 
       - name: Run tests
         run: uv run pytest
