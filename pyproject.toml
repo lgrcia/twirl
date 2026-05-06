@@ -15,10 +15,10 @@ keywords = ["astronomy", "astrometry", "plate-solving"]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.14"
-astropy = ">=5.1.1,<8"
+astropy = ">=7.2.0,<8"
 astroquery = "^0.4.6"
 matplotlib = "^3.10.0"
-numpy = "^1.26.4"
+numpy = "^2.0.0"
 requests = "^2.32.3"
 scikit-image = "^0.25.0"
 scipy = "^1.15.0"
