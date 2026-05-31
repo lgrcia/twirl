@@ -143,7 +143,9 @@ def sparsify(coords: np.ndarray, radius: float) -> np.ndarray:
         from each other.
     """
     _coords = coords.copy()
-    deleted_coords = np.zeros([], dtype=int)
+    # np.empty instead of np.zeros because the value of np.zeros will be
+    # zero, leading to lgarcia/twirl#41
+    deleted_coords = np.empty([], dtype=int)
     sparse_coords = []
 
     for i, s in enumerate(_coords):
