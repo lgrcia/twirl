@@ -2814,7 +2814,7 @@ wheels = [
 
 [[package]]
 name = "twirl"
-version = "0.5.0"
+version = "0.5.1"
 source = { editable = "." }
 dependencies = [
     { name = "astropy", version = "6.1.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -2829,6 +2829,11 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+dev = [
+    { name = "black" },
+    { name = "pytest" },
+    { name = "ruff" },
+]
 docs = [
     { name = "docutils" },
     { name = "jupyterlab" },
@@ -2860,6 +2865,7 @@ dev = [
 requires-dist = [
     { name = "astropy", specifier = ">=5.1.1,<8" },
     { name = "astroquery", specifier = ">=0.4.6" },
+    { name = "black", marker = "extra == 'dev'", specifier = ">=23.3.0" },
     { name = "docutils", marker = "extra == 'docs'", specifier = ">=0.21.2" },
     { name = "jupyterlab", marker = "extra == 'docs'", specifier = ">=4.3.4" },
     { name = "matplotlib", specifier = ">=3.10.0" },
@@ -2869,10 +2875,12 @@ requires-dist = [
     { name = "numpy", specifier = ">=1.26.4" },
     { name = "pandas", marker = "extra == 'docs'", specifier = ">=2.2.3" },
     { name = "photutils", marker = "extra == 'docs'", specifier = ">=2.0.2" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.3.1" },
     { name = "pytest", marker = "extra == 'test'" },
     { name = "pyyaml", marker = "extra == 'docs'", specifier = ">=6.0.2" },
     { name = "pyzmq", marker = "extra == 'docs'", specifier = ">=26.2.0" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.0.261" },
     { name = "scikit-image", specifier = ">=0.25.0" },
     { name = "scipy", specifier = ">=1.15.0" },
     { name = "scipy", marker = "extra == 'docs'", specifier = ">=1.15.0" },
@@ -2881,7 +2889,7 @@ requires-dist = [
     { name = "sphinx-copybutton", marker = "extra == 'docs'", specifier = ">=0.5.2" },
     { name = "twine", marker = "extra == 'docs'", specifier = ">=6.0.1" },
 ]
-provides-extras = ["test", "docs"]
+provides-extras = ["test", "dev", "docs"]
 
 [package.metadata.requires-dev]
 dev = [
