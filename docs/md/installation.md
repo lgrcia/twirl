@@ -14,8 +14,8 @@ cd twirl
 pip install -e .
 ```
 
-or/and using poetry:
+or/and using uv:
 
 ```shell
-poetry add twirl
+uv add twirl
 ```

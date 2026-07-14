@@ -48,8 +48,11 @@ def quad_hash(quads, oriented=True):
 
     u1, u2 = u1u2(a, b)
 
+    def cross2d(x, y):
+        return x[..., 0] * y[..., 1] - x[..., 1] * y[..., 0]
+
     if oriented:
-        reverse = (np.cross((b - a), (b - c))) >= 0
+        reverse = cross2d((b - a), (b - c)) >= 0
         # invert u1 and u2 for reversed quads
         u1[reverse], u2[reverse] = u2[reverse], u1[reverse]
 

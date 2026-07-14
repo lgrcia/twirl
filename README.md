@@ -34,10 +34,10 @@ twirl can be installed using pip:
 pip install twirl
 ```
 
-or using poetry:
+or using uv:
 
 ```shell
-poetry add twirl
+uv add twirl
 ```
 
 ## Example Usage
@@ -92,34 +92,24 @@ A more complete example is provided in [docs/ipynb/wcs.ipynb](https://twirl.read
 
 ### Project Requirements
 
-- [Python](https://www.python.org/) 3.11.*
-- [Poetry](https://python-poetry.org/) for Python package and environment management.
+- [Python](https://www.python.org/) 3.10+
+- [uv](https://docs.astral.sh/uv/) for Python package and environment management.
 
 ### Installing Dependencies
 
-The twirl project manages Python package dependencies using [Poetry](https://python-poetry.org/). You'll need to follow the instructions for installation there.
-
-Then you can start a shell session with the new environment with:
+Install all dependencies (including dev) with:
 
 ```console
-$ poetry shell
+$ uv sync --group dev
 ```
 
-**N.B.** For development with vscode you will need to run the following command:
+Then run commands in the project environment with:
 
 ```console
-$ poetry config virtualenvs.in-project true
+$ uv run <command>
 ```
 
-This will installed the poetry `.venv` in the root of the project and allow vscode to setup the environment correctly for development.
-
-To start development, install all of the dependencies as:
-
-```console
-$ poetry install
-```
-
-**N.B.** _Ensure that any dependency changes are committed to source control, so everyone has a consistenct package dependecy list._
+**N.B.** _Ensure that any dependency changes are committed to source control, so everyone has a consistent package dependency list._
 
 
 ## Acknowledgements
