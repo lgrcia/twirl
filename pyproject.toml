@@ -1,9 +1,13 @@
 [project]
 name = "twirl"
-version = "0.5.1"
+version = "0.5.2"
 description = "Astrometric plate solving in Python"
 authors = [{ name = "Lionel Garcia"}]
-maintainers = [{ name = "Lionel Garcia"}, {name="Michael J. Roberts", email="michael@observerly.com"}]
+maintainers = [
+  { name = "Lionel Garcia"},
+  { name = "Michael J. Roberts", email="michael@observerly.com" },
+  { name = "David Degen"}
+]
 license = "MIT"
 readme = "README.md"
 homepage = "https://twirl.readthedocs.io"
