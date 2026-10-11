@@ -29,6 +29,7 @@ def compute_wcs(
     quads_tolerance: float = 0.1,
     asterism=4,
     min_match=0.8,
+    backend: str = "auto",
 ) -> WCS:
     """
     Compute the WCS solution for an image given pixel coordinates and some unordered RA-DEC values.
@@ -45,6 +46,9 @@ def compute_wcs(
         Number of sources to use for matching, by default 4
     min_match : int, optional
         Minimum number of matches required, by default None
+    backend : str, optional
+        Backend of `twirl.match.find_transform`: "numba", "numpy" or "auto" (numba
+        when installed), by default "auto".
 
     Returns
     -------
@@ -64,6 +68,7 @@ def compute_wcs(
         asterism=asterism,
         min_match=min_match,
         quads_tolerance=quads_tolerance,
+        backend=backend,
     )
     if M is None:
         return None

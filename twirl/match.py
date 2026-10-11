@@ -1,3 +1,4 @@
+from importlib.util import find_spec
 from typing import Optional
 
 import numpy as np
@@ -62,6 +63,25 @@ def cross_match(coords1, coords2, tolerance=10):
     return np.array(matches)
 
 
+def _numba_available() -> bool:
+    return find_spec("numba") is not None
+
+
+def _match_counts_numpy(
+    asterism_radecs, asterism_pixels, i, j, radecs, pixels, tolerance, stop
+):
+    """Pure NumPy version of `twirl._numba.match_counts`."""
+    padded_radecs = pad(radecs)
+    counts = []
+    for p in range(len(i)):
+        M = get_transform_matrix(asterism_radecs[j[p]], asterism_pixels[i[p]])
+        test = (M @ padded_radecs.T)[0:2].T
+        counts.append(count_cross_match(pixels, test, tolerance))
+        if stop >= 0 and counts[-1] >= stop:
+            break
+    return np.array(counts, dtype=int)
+
+
 def find_transform(
     radecs: np.ndarray,
     pixels: np.ndarray,
@@ -69,7 +89,8 @@ def find_transform(
     asterism: int = 4,
     quads_tolerance: float = 0.02,
     tolerance: float = 12,
-) -> np.ndarray:
+    backend: str = "auto",
+) -> Optional[np.ndarray]:
     """
     Finds the transformation matrix from `radecs` to `pixels`.
 
@@ -93,6 +114,10 @@ def find_transform(
         (in `pixels` units). This serves to compute the number of coordinates being
         matched between `radecs` and `pixels` for a given transform.
         By default 12.
+    backend : str, optional
+        How candidate asterism pairs are tested: "numba" (compiled, much faster,
+        requires numba), "numpy", or "auto" to use numba when it is installed.
+        All backends return the same transform. By default "auto".
 
     Returns
     -------
@@ -107,33 +132,43 @@ def find_transform(
     else:
         raise ValueError("available asterisms are 3 and 4")
 
+    if backend == "auto":
+        backend = "numba" if _numba_available() else "numpy"
+    if backend == "numba":
+        from twirl._numba import match_counts
+    elif backend == "numpy":
+        match_counts = _match_counts_numpy
+    else:
+        raise ValueError("available backends are 'auto', 'numba' and 'numpy'")
+
     hashes_pixels, asterism_pixels = asterism_function(pixels)
     hashes_radecs, asterism_radecs = asterism_function(radecs)
 
     tree_pixels = cKDTree(hashes_pixels)
     tree_radecs = cKDTree(hashes_radecs)
-    pairs = []
-
     ball_query = tree_pixels.query_ball_tree(tree_radecs, r=quads_tolerance)
-    matches = []
 
-    for i, j in enumerate(ball_query):
-        if len(j) > 0:
-            pairs += [[i, k] for k in j]
+    # candidate pairs (pixels asterism i, radecs asterism j), as arrays
+    lengths = np.fromiter(map(len, ball_query), dtype=np.int64, count=len(ball_query))
+    i = np.repeat(np.arange(len(ball_query), dtype=np.int64), lengths)
+    j = np.fromiter(
+        (k for js in ball_query for k in js), dtype=np.int64, count=int(lengths.sum())
+    )
 
-    for i, j in pairs:
-        M = get_transform_matrix(asterism_radecs[j], asterism_pixels[i])
-        test = (M @ pad(radecs).T)[0:2].T
-        match = count_cross_match(pixels, test, tolerance)
-        matches.append(match)
-
-        if min_match is not None:
-            if match >= min_match * len(pixels):
-                break
-
-    if len(matches) == 0:
+    if len(i) == 0:
         return None
-    else:
-        i, j = pairs[np.argmax(matches)]
-        M = get_transform_matrix(asterism_radecs[j], asterism_pixels[i])
-        return M
+
+    stop = -1.0 if min_match is None else float(min_match * len(pixels))
+    matches = match_counts(
+        np.ascontiguousarray(asterism_radecs, dtype=float),
+        np.ascontiguousarray(asterism_pixels, dtype=float),
+        i,
+        j,
+        np.ascontiguousarray(radecs, dtype=float),
+        np.ascontiguousarray(pixels, dtype=float),
+        float(tolerance),
+        stop,
+    )
+
+    best = np.argmax(matches)
+    return get_transform_matrix(asterism_radecs[j[best]], asterism_pixels[i[best]])

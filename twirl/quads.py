@@ -13,7 +13,7 @@ def reorder(quads):
     idxs = np.roll(
         np.argsort(distances[range(len(quads)), i], axis=1)[:, ::-1], 1, axis=1
     )
-    return np.array([q[i] for q, i in zip(quads, idxs)])
+    return np.take_along_axis(quads, idxs[:, :, None], axis=1)
 
 
 def good_quads(quads, circletol=0.01):
