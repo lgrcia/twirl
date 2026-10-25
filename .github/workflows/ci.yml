@@ -45,8 +45,9 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen --group dev
 
+      # astropy < 7.1 uses np.in1d, which NumPy 2.4 removed
       - name: Pin astropy version
-        run: uv pip install "astropy==${{ matrix.astropy-version }}.*"
+        run: uv pip install "astropy==${{ matrix.astropy-version }}.*" "numpy<2.4"
 
       - name: Remove numba
         if: matrix.backend == 'numpy'
