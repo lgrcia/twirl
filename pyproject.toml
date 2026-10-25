@@ -1,6 +1,6 @@
 [project]
 name = "twirl"
-version = "0.6.0"
+version = "0.5.2"
 description = "Astrometric plate solving in Python"
 authors = [{ name = "Lionel Garcia"}]
 maintainers = [
