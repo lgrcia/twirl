@@ -1,3 +1,6 @@
+import sys
+from importlib.util import find_spec
+
 import numpy as np
 import pytest
 from astropy.wcs import WCS
@@ -7,7 +10,9 @@ from twirl.match import find_transform
 from twirl.quads import reorder
 from twirl.utils import compute_wcs
 
-pytest.importorskip("numba")
+requires_numba = pytest.mark.skipif(
+    find_spec("numba") is None, reason="numba is not installed"
+)
 
 
 def reorder_loop(quads):
@@ -38,6 +43,7 @@ def test_reorder_matches_loop():
     np.testing.assert_array_equal(reorder(quads), reorder_loop(quads))
 
 
+@requires_numba
 @pytest.mark.parametrize("asterism", [3, 4])
 @pytest.mark.parametrize("n", [6, 12, 25])
 @pytest.mark.parametrize("seed", [3, 5])
@@ -51,6 +57,7 @@ def test_backends_same_transform(asterism, n, seed, min_match, noise):
     np.testing.assert_allclose(M_numba, M_numpy, rtol=1e-9, atol=1e-9)
 
 
+@requires_numba
 @pytest.mark.parametrize("asterism", [3, 4])
 def test_backends_same_wcs(asterism):
     rng = np.random.default_rng(1)
@@ -83,3 +90,14 @@ def test_unknown_backend():
     xy1, xy2 = simulated_points(8, 0)
     with pytest.raises(ValueError):
         find_transform(xy1, xy2, backend="cython")
+
+
+def test_auto_falls_back_when_numba_fails_to_import(monkeypatch):
+    xy1, xy2 = simulated_points(8, 0)
+    # a None entry in sys.modules makes `import twirl._numba` raise ImportError
+    monkeypatch.setitem(sys.modules, "twirl._numba", None)
+    M_auto = find_transform(xy1, xy2, tolerance=0.02, backend="auto")
+    M_numpy = find_transform(xy1, xy2, tolerance=0.02, backend="numpy")
+    np.testing.assert_array_equal(M_auto, M_numpy)
+    with pytest.raises(ImportError):
+        find_transform(xy1, xy2, tolerance=0.02, backend="numba")

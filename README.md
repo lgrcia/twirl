@@ -40,7 +40,7 @@ or using uv:
 uv add twirl
 ```
 
-For much faster matching (about 30x on large star lists), also install the optional [numba](https://numba.pydata.org) dependency, e.g. `pip install "twirl[numba]"`. twirl uses it automatically when it is installed, and gives the same results without it.
+For faster matching (up to about 30x when many asterisms must be tested, e.g. crowded fields), also install the optional [numba](https://numba.pydata.org) dependency, e.g. `pip install "twirl[numba]"`. twirl uses it automatically when it is installed, and gives the same results without it.
 
 ## Example Usage
 

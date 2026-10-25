@@ -1,4 +1,3 @@
-from importlib.util import find_spec
 from typing import Optional
 
 import numpy as np
@@ -63,10 +62,6 @@ def cross_match(coords1, coords2, tolerance=10):
     return np.array(matches)
 
 
-def _numba_available() -> bool:
-    return find_spec("numba") is not None
-
-
 def _match_counts_numpy(
     asterism_radecs, asterism_pixels, i, j, radecs, pixels, tolerance, stop
 ):
@@ -116,8 +111,9 @@ def find_transform(
         By default 12.
     backend : str, optional
         How candidate asterism pairs are tested: "numba" (compiled, much faster,
-        requires numba), "numpy", or "auto" to use numba when it is installed.
-        All backends return the same transform. By default "auto".
+        requires numba), "numpy", or "auto" to use numba when it can be imported.
+        All backends return the same transform. The first numba call in a process
+        compiles the loop (about 1 s, then cached on disk). By default "auto".
 
     Returns
     -------
@@ -133,8 +129,12 @@ def find_transform(
         raise ValueError("available asterisms are 3 and 4")
 
     if backend == "auto":
-        backend = "numba" if _numba_available() else "numpy"
-    if backend == "numba":
+        # numba can be installed but fail to import (e.g. unsupported NumPy)
+        try:
+            from twirl._numba import match_counts
+        except ImportError:
+            match_counts = _match_counts_numpy
+    elif backend == "numba":
         from twirl._numba import match_counts
     elif backend == "numpy":
         match_counts = _match_counts_numpy
