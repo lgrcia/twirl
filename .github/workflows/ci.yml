@@ -19,9 +19,16 @@ jobs:
         os: [ubuntu-latest]
         python-version: ["3.10", "3.11", "3.12", "3.13"]
         astropy-version: ["6.1.7", "7.0"]
+        backend: ["numba"]
         exclude:
           - python-version: "3.10"
             astropy-version: "7.0"
+        # numba is optional: also test without it
+        include:
+          - os: ubuntu-latest
+            python-version: "3.13"
+            astropy-version: "7.0"
+            backend: "numpy"
 
       fail-fast: false
 
@@ -41,5 +48,10 @@ jobs:
       - name: Pin astropy version
         run: uv pip install "astropy==${{ matrix.astropy-version }}.*"
 
+      - name: Remove numba
+        if: matrix.backend == 'numpy'
+        run: uv pip uninstall numba llvmlite
+
+      # --no-sync keeps the environment as set up above
       - name: Run tests
-        run: uv run pytest
+        run: uv run --no-sync pytest
