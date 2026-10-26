@@ -40,6 +40,8 @@ or using uv:
 uv add twirl
 ```
 
+For faster matching (up to about 30x when many asterisms must be tested, e.g. crowded fields), also install the optional [numba](https://numba.pydata.org) dependency, e.g. `pip install "twirl[numba]"`. twirl uses it automatically when it is installed, and gives the same results without it.
+
 ## Example Usage
 
 *twirl* is designed to be complementary to the *astropy* package. It is used to compute a WCS by matching an image detected stars with catalog stars. To query the catalog stars, the center coordinates of the image must be known, as well as the size of the field of view. If not available, the latter can be computed using the known pixel scale of the detector.
